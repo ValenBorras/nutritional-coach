@@ -12,10 +12,35 @@ import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from "@/app/com
 import { motion } from 'framer-motion'
 import { useAuth } from '@/app/components/auth/auth-provider'
 
+interface NutritionistStats {
+  activePatients: number;
+  aiConsultations: number;
+  generatedKeys: number;
+}
+
+interface PatientStats {
+  activeDays: number;
+  conversations: number;
+  progress: number;
+  messagesCount: number;
+}
+
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
   const [aiConfigured, setAiConfigured] = useState(false);
   const [checkingAi, setCheckingAi] = useState(true);
+  const [nutritionistStats, setNutritionistStats] = useState<NutritionistStats>({
+    activePatients: 0,
+    aiConsultations: 0,
+    generatedKeys: 0,
+  });
+  const [patientStats, setPatientStats] = useState<PatientStats>({
+    activeDays: 0,
+    conversations: 0,
+    progress: 0,
+    messagesCount: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
 
   if (loading) {
     return (
@@ -39,6 +64,13 @@ export default function Dashboard() {
     }
   }, [user?.id, isNutritionist]);
 
+  // Fetch statistics based on user role
+  useEffect(() => {
+    if (user?.id) {
+      fetchStats();
+    }
+  }, [user?.id, isNutritionist, isPatient]);
+
   const checkAIConfiguration = async () => {
     try {
       const response = await fetch('/api/nutritionist/ai-rules');
@@ -50,6 +82,30 @@ export default function Dashboard() {
       console.error('Error checking AI configuration:', error);
     } finally {
       setCheckingAi(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      setLoadingStats(true);
+      
+      if (isNutritionist) {
+        const response = await fetch('/api/nutritionist/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setNutritionistStats(data);
+        }
+      } else if (isPatient) {
+        const response = await fetch('/api/patient/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setPatientStats(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -93,7 +149,11 @@ export default function Dashboard() {
                           {isNutritionist ? 'Pacientes Activos' : 'Días Activos'}
                         </p>
                         <p className="text-3xl font-bold">
-                          {isNutritionist ? '0' : '7'}
+                          {loadingStats ? (
+                            <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                          ) : (
+                            isNutritionist ? nutritionistStats.activePatients : patientStats.activeDays
+                          )}
                         </p>
                       </div>
                       <Users className="w-8 h-8 text-white/80" />
@@ -111,7 +171,11 @@ export default function Dashboard() {
                           {isNutritionist ? 'Consultas IA' : 'Conversaciones'}
                         </p>
                         <p className="text-3xl font-bold">
-                          {isNutritionist ? '0' : '3'}
+                          {loadingStats ? (
+                            <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                          ) : (
+                            isNutritionist ? nutritionistStats.aiConsultations : patientStats.conversations
+                          )}
                         </p>
                       </div>
                       <MessageSquare className="w-8 h-8 text-white/80" />
@@ -129,7 +193,13 @@ export default function Dashboard() {
                           {isNutritionist ? 'Claves Generadas' : 'Progreso'}
                         </p>
                         <p className="text-3xl font-bold">
-                          {isNutritionist ? '0' : '85%'}
+                          {loadingStats ? (
+                            <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                          ) : (
+                            isNutritionist 
+                              ? nutritionistStats.generatedKeys 
+                              : `${patientStats.progress}%`
+                          )}
                         </p>
                       </div>
                       <Activity className="w-8 h-8 text-white/80" />

@@ -1,26 +1,94 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 39 33% 91%;
+    --foreground: 0 0% 29%;
+
+    --card: 39 33% 91%;
+    --card-foreground: 0 0% 29%;
+
+    --popover: 39 33% 91%;
+    --popover-foreground: 0 0% 29%;
+
+    --primary: 2 79% 88%;
+    --primary-foreground: 0 0% 29%;
+
+    --secondary: 147 24% 73%;
+    --secondary-foreground: 0 0% 29%;
+
+    --muted: 39 33% 81%;
+    --muted-foreground: 0 0% 39%;
+
+    --accent: 147 24% 73%;
+    --accent-foreground: 0 0% 29%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 39 33% 91%;
+
+    --border: 39 33% 81%;
+    --input: 39 33% 81%;
+    --ring: 2 79% 88%;
+
+    --radius: 1rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-marcellus);
+  }
+}
+
+@layer utilities {
+  .bg-soft-rose {
+    background-color: #F7CAC9;
+  }
+  .bg-sage-green {
+    background-color: #A8CBB7;
+  }
+  .bg-warm-sand {
+    background-color: #F5EBDD;
+  }
+  .bg-coral {
+    background-color: #F88379;
+  }
+  .text-charcoal {
+    color: #4A4A4A;
+  }
+  .text-mist-white {
+    color: #FFFDFB;
+  }
+  .text-soft-rose {
+    color: #F7CAC9;
+  }
+  .text-sage-green {
+    color: #A8CBB7;
+  }
+  .text-coral {
+    color: #F88379;
+  }
+  .border-soft-rose {
+    border-color: #F7CAC9;
+  }
+  .border-sage-green {
+    border-color: #A8CBB7;
+  }
+  .border-coral {
+    border-color: #F88379;
+  }
 }

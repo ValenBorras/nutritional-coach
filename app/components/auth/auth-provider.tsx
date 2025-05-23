@@ -20,6 +20,7 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<any>;
   signUpWithEmail: (email: string, password: string, metadata?: any) => Promise<any>;
+  refreshUser: () => Promise<void>;
   supabase: any;
 }
 
@@ -213,11 +214,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function refreshUser() {
+    if (authState.authUser) {
+      console.log('🔄 Refreshing user data...');
+      await loadUserData(authState.authUser);
+    }
+  }
+
   const value: AuthContextType = {
     ...authState,
     signOut,
     signInWithEmail,
     signUpWithEmail,
+    refreshUser,
     supabase,
   };
 

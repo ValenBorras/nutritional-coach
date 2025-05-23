@@ -58,6 +58,18 @@ CREATE TABLE public.ai_rules (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Create Patient Keys table
+CREATE TABLE public.patient_keys (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  nutritionist_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  key TEXT UNIQUE NOT NULL,
+  used BOOLEAN DEFAULT FALSE,
+  used_at TIMESTAMPTZ,
+  patient_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Create Account table (for OAuth providers)
 CREATE TABLE public.accounts (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -95,6 +107,7 @@ CREATE TABLE public.verification_tokens (
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_rules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.patient_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 
@@ -126,6 +139,13 @@ CREATE POLICY "Nutritionists can manage own AI rules" ON public.ai_rules
     )
   );
 
+-- Patient Keys policies
+CREATE POLICY "Nutritionists can manage own patient keys" ON public.patient_keys
+  FOR ALL USING (auth.uid() = nutritionist_id);
+
+CREATE POLICY "Anyone can read unused patient keys for registration" ON public.patient_keys
+  FOR SELECT USING (used = FALSE);
+
 -- Nutritionist-Patient relationship policies
 CREATE POLICY "Nutritionists can view their patients" ON public.users
   FOR SELECT USING (
@@ -153,11 +173,16 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles
 CREATE TRIGGER update_ai_rules_updated_at BEFORE UPDATE ON public.ai_rules
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_patient_keys_updated_at BEFORE UPDATE ON public.patient_keys
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Create indexes for performance
 CREATE INDEX idx_users_email ON public.users(email);
 CREATE INDEX idx_users_nutritionist_key ON public.users(nutritionist_key);
 CREATE INDEX idx_users_nutritionist_id ON public.users(nutritionist_id);
 CREATE INDEX idx_profiles_user_id ON public.profiles(user_id);
 CREATE INDEX idx_ai_rules_user_id ON public.ai_rules(user_id);
+CREATE INDEX idx_patient_keys_key ON public.patient_keys(key);
+CREATE INDEX idx_patient_keys_nutritionist_id ON public.patient_keys(nutritionist_id);
 CREATE INDEX idx_accounts_user_id ON public.accounts(user_id);
 CREATE INDEX idx_sessions_user_id ON public.sessions(user_id); 

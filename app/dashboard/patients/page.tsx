@@ -1,14 +1,28 @@
+// This page is commented out for MVP focus
+// TODO: Re-enable after core AI chat functionality is complete
+
+/*
+COMPLEX PATIENT MANAGEMENT IMPLEMENTATION COMMENTED OUT FOR MVP
+
+This file originally contained:
+- Patient key management for nutritionists
+- List of generated and used keys  
+- Patient registration tracking
+- Key generation with copy functionality
+- Patient-nutritionist relationship management
+
+Will be re-enabled post-MVP when core AI chat is stable.
+*/
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Metadata } from "next";
 import DashboardLayout from "@/app/components/dashboard-layout";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
 import { Plus, Copy, Check, User, Clock, Key } from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from '@/app/components/auth/auth-provider';
 
 interface PatientKey {
   id: string;
@@ -28,6 +42,7 @@ export default function PatientsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -41,13 +56,13 @@ export default function PatientsPage() {
       const response = await fetch('/api/nutritionist/patient-keys');
       if (response.ok) {
         const data = await response.json();
-        setPatientKeys(data.keys);
+        setPatientKeys(data.keys || []);
       } else {
-        toast.error('Error al cargar las claves');
+        setError('Error al cargar las claves');
       }
     } catch (error) {
       console.error('Error fetching patient keys:', error);
-      toast.error('Error al cargar las claves');
+      setError('Error al cargar las claves');
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +70,7 @@ export default function PatientsPage() {
 
   const generateNewKey = async () => {
     setIsGenerating(true);
+    setError(null);
     try {
       const response = await fetch('/api/nutritionist/generate-patient-key', {
         method: 'POST',
@@ -62,15 +78,14 @@ export default function PatientsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        toast.success('Nueva clave generada exitosamente');
         await fetchPatientKeys(); // Refresh the list
       } else {
         const errorData = await response.json();
-        toast.error(errorData.message || 'Error al generar la clave');
+        setError(errorData.message || 'Error al generar la clave');
       }
     } catch (error) {
       console.error('Error generating key:', error);
-      toast.error('Error al generar la clave');
+      setError('Error al generar la clave');
     } finally {
       setIsGenerating(false);
     }
@@ -80,10 +95,9 @@ export default function PatientsPage() {
     try {
       await navigator.clipboard.writeText(key);
       setCopiedKey(key);
-      toast.success('Clave copiada al portapapeles');
       setTimeout(() => setCopiedKey(null), 2000);
     } catch (error) {
-      toast.error('Error al copiar la clave');
+      setError('Error al copiar la clave');
     }
   };
 
@@ -129,6 +143,12 @@ export default function PatientsPage() {
             {isGenerating ? 'Generando...' : 'Añadir Paciente'}
           </Button>
         </div>
+
+        {error && (
+          <div className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -273,7 +293,7 @@ export default function PatientsPage() {
 
         {isLoading && (
           <div className="flex items-center justify-center h-32">
-            <p className="text-charcoal/70">Cargando...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-coral"></div>
           </div>
         )}
 

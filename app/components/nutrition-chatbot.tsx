@@ -3,96 +3,185 @@
 import { useState } from "react"
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Input } from "@/app/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
-import { Send, Bot, User } from "lucide-react"
+import { Send, Bot, User, Loader2 } from "lucide-react"
+
+interface Message {
+  role: "user" | "assistant"
+  content: string
+  timestamp: string
+}
 
 export default function NutritionChatbot() {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello Jane! I'm your NutriGuide assistant. How can I help you today with your nutrition goals?",
-      timestamp: new Date(Date.now() - 60000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      content: "¡Hola! Soy tu asistente nutricional de NutriGuide. ¿En qué puedo ayudarte hoy con tu alimentación y objetivos de salud?",
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ])
   const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSendMessage = () => {
-    if (!input.trim()) return
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return
 
-    // Add user message
-    const userMessage = {
+    const userMessage: Message = {
       role: "user",
       content: input,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }
 
-    setMessages([...messages, userMessage])
+    // Add user message immediately
+    const updatedMessages = [...messages, userMessage]
+    setMessages(updatedMessages)
     setInput("")
+    setIsLoading(true)
+    setError(null)
 
-    // Simulate AI response after a short delay
-    setTimeout(() => {
-      const aiResponses = [
-        "Based on Dr. Rebecca's recommendations, try adding more leafy greens to your lunch today. How about a spinach salad with your protein?",
-        "I notice you've been having trouble sleeping. Dr. Rebecca suggests having a cup of chamomile tea before bed and avoiding screens for an hour before sleep.",
-        "Great job on staying hydrated yesterday! Remember Dr. Rebecca's advice to include a source of protein with each meal to help maintain stable energy levels.",
-        "For your afternoon snack, Dr. Rebecca recommends something with both protein and healthy fats. How about some Greek yogurt with a few almonds?",
-      ]
+    try {
+      // Call the AI API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: input,
+          conversationHistory: updatedMessages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
+        }),
+      })
 
-      const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)]
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al procesar tu mensaje')
+      }
 
-      const assistantMessage = {
+      const data = await response.json()
+      
+      const assistantMessage: Message = {
         role: "assistant",
-        content: randomResponse,
+        content: data.message,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
 
-      setMessages((prevMessages) => [...prevMessages, assistantMessage])
-    }, 1000)
+      setMessages(prev => [...prev, assistantMessage])
+    } catch (err) {
+      console.error('Chat error:', err)
+      setError(err instanceof Error ? err.message : 'Error inesperado')
+      
+      // Add error message to chat
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "Lo siento, hay un problema técnico. Por favor intenta de nuevo en unos momentos.",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
   }
 
   return (
     <Card className="h-full flex flex-col bg-warm-sand border-soft-rose/20">
       <CardHeader className="pb-3 border-b border-soft-rose/10">
-        <CardTitle className="text-lg font-medium flex items-center gap-2">Your Nutrition Assistant</CardTitle>
+        <CardTitle className="text-xl font-medium flex items-center gap-2">
+          <Bot className="w-6 h-6 text-coral" />
+          Tu Asistente Nutricional con IA
+        </CardTitle>
+        <p className="text-sm text-charcoal/60 mt-1">
+          Asistente personalizado según las recomendaciones de tu nutricionista
+        </p>
+        {error && (
+          <div className="text-sm text-red-500 mt-2 bg-red-50 p-2 rounded">{error}</div>
+        )}
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4" style={{ maxHeight: '450px' }}>
           {messages.map((message, index) => (
             <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                  message.role === "user"
-                    ? "bg-coral text-mist-white rounded-tr-none"
-                    : "bg-sage-green/20 text-charcoal rounded-tl-none"
-                }`}
-              >
-                <p className="text-sm">{message.content}</p>
-                <p className="text-xs opacity-70 mt-1 text-right">{message.timestamp}</p>
+              <div className="flex items-start gap-3 max-w-[80%]">
+                {message.role === "assistant" && (
+                  <div className="w-8 h-8 rounded-full bg-coral/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-4 h-4 text-coral" />
+                  </div>
+                )}
+                <div
+                  className={`rounded-2xl px-5 py-4 ${
+                    message.role === "user"
+                      ? "bg-coral text-mist-white rounded-tr-none"
+                      : "bg-sage-green/20 text-charcoal rounded-tl-none"
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-xs opacity-70 mt-2 text-right">{message.timestamp}</p>
+                </div>
+                {message.role === "user" && (
+                  <div className="w-8 h-8 rounded-full bg-soft-rose/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <User className="w-4 h-4 text-soft-rose" />
+                  </div>
+                )}
               </div>
             </div>
           ))}
+          
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="flex items-start gap-3 max-w-[80%]">
+                <div className="w-8 h-8 rounded-full bg-coral/20 flex items-center justify-center flex-shrink-0 mt-1">
+                  <Bot className="w-4 h-4 text-coral" />
+                </div>
+                <div className="bg-sage-green/20 text-charcoal rounded-2xl rounded-tl-none px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Tu asistente está pensando...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="p-4 border-t border-soft-rose/10 mt-auto">
-          <div className="flex gap-2">
-            <input
-              type="text"
+        <div className="p-6 border-t border-soft-rose/10 mt-auto bg-gradient-to-r from-warm-sand/50 to-mist-white/50">
+          <div className="flex gap-3">
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-              placeholder="Ask your nutrition question..."
-              className="flex-1 px-4 py-2 rounded-full bg-mist-white border border-soft-rose/20 focus:outline-none focus:ring-2 focus:ring-soft-rose/50 text-charcoal"
+              onKeyDown={handleKeyPress}
+              placeholder="Pregúntame sobre nutrición, recetas, o tus objetivos de salud..."
+              className="flex-1 px-4 py-3 rounded-xl bg-mist-white border border-soft-rose/20 focus:outline-none focus:ring-2 focus:ring-soft-rose/50 text-charcoal resize-none min-h-[50px] max-h-32 text-sm"
+              disabled={isLoading}
+              rows={1}
+              style={{ height: 'auto' }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+              }}
             />
             <Button
               onClick={handleSendMessage}
-              className="rounded-full bg-coral hover:bg-coral/90 text-mist-white"
+              className="rounded-xl bg-coral hover:bg-coral/90 text-mist-white flex-shrink-0 h-[50px] w-[50px]"
+              disabled={!input.trim() || isLoading}
               size="icon"
             >
-              <Send size={18} />
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send size={20} />
+              )}
             </Button>
           </div>
-          <p className="text-xs text-charcoal/60 mt-2 text-center">Guidance based on Dr. Rebecca's recommendations</p>
         </div>
       </CardContent>
     </Card>

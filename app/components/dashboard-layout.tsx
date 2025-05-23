@@ -18,7 +18,7 @@ export default function DashboardLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const isMobile = useMediaQuery("(max-width: 1024px)")
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
 
   // Different navigation items based on user role
   const getNavItems = () => {
@@ -45,6 +45,15 @@ export default function DashboardLayout({
   }
 
   const navItems = getNavItems()
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      // The auth state change will automatically redirect to login
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-mist-white flex">
@@ -88,7 +97,11 @@ export default function DashboardLayout({
                 <p className="text-xs text-charcoal/60">{user?.email || 'Sin email'}</p>
               </div>
             </div>
-            <Button variant="outline" className="w-full border-soft-rose/20 text-charcoal hover:bg-soft-rose/10 gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full border-soft-rose/20 text-charcoal hover:bg-soft-rose/10 gap-2"
+              onClick={handleLogout}
+            >
               <LogOut size={16} />
               <span>Log Out</span>
             </Button>
@@ -182,6 +195,7 @@ export default function DashboardLayout({
                 <Button
                   variant="outline"
                   className="w-full border-soft-rose/20 text-charcoal hover:bg-soft-rose/10 gap-2"
+                  onClick={handleLogout}
                 >
                   <LogOut size={16} />
                   <span>Log Out</span>

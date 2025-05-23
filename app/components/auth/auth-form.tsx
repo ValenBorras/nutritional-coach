@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { PulsingDots } from '../ui/loading-spinner';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -14,9 +15,32 @@ interface AuthFormProps {
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
-  const { signInWithEmail } = useAuth();
+  const { signInWithEmail, loading: authLoading, error: authError, user, authUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle auth errors from the useAuth hook
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+      setIsLoading(false);
+    }
+  }, [authError]);
+
+  // Handle successful authentication
+  useEffect(() => {
+    if (authUser && !authLoading) {
+      if (user) {
+        // User data loaded successfully, redirect to dashboard
+        router.push('/dashboard');
+        router.refresh();
+      } else if (!authError) {
+        // Auth user exists but no user data - this indicates a data inconsistency
+        setError('Account data incomplete. Please contact support or try registering again.');
+        setIsLoading(false);
+      }
+    }
+  }, [authUser, user, authLoading, authError, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,102 +65,131 @@ export function AuthForm({ mode }: AuthFormProps) {
           throw new Error(data.message || 'Error al registrar usuario');
         }
 
-        // Después del registro exitoso, iniciar sesión automáticamente
+        // After successful registration, sign in automatically
         const { error: signInError } = await signInWithEmail(email, password);
 
         if (signInError) {
           throw new Error(signInError.message);
         }
+
+        // Don't redirect here - let the useEffect handle it after user data loads
       } else {
         const { error: signInError } = await signInWithEmail(email, password);
 
         if (signInError) {
           throw new Error(signInError.message);
         }
-      }
 
-      router.push('/dashboard');
-      router.refresh();
+        // Don't redirect here - let the useEffect handle it after user data loads
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ocurrió un error');
-    } finally {
       setIsLoading(false);
     }
   };
 
+  // Show loading state while auth is loading or form is submitting
+  const showLoading = isLoading || authLoading;
+
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-3xl font-marcellus tracking-wide text-center">
+    <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+      <CardHeader className="pb-8">
+        <CardTitle className="text-3xl font-marcellus tracking-wide text-center text-charcoal">
           {mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
         </CardTitle>
-        <CardDescription className="text-center font-marcellus">
+        <CardDescription className="text-center font-marcellus text-charcoal/70">
           {mode === 'login'
             ? 'Ingresa tus credenciales para acceder a tu cuenta'
             : 'Crea una cuenta para comenzar tu viaje de nutrición'}
         </CardDescription>
       </CardHeader>
+
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {mode === 'register' && (
             <div className="space-y-2">
-              <Label htmlFor="name" className="font-marcellus">Nombre</Label>
+              <Label htmlFor="name" className="font-marcellus text-charcoal">Nombre</Label>
               <Input
                 id="name"
                 name="name"
                 type="text"
                 required
                 placeholder="Tu nombre"
-                disabled={isLoading}
+                disabled={showLoading}
               />
             </div>
           )}
+
           <div className="space-y-2">
-            <Label htmlFor="email" className="font-marcellus">Email</Label>
+            <Label htmlFor="email" className="font-marcellus text-charcoal">Email</Label>
             <Input
               id="email"
               name="email"
               type="email"
               required
               placeholder="tu@email.com"
-              disabled={isLoading}
+              disabled={showLoading}
             />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="password" className="font-marcellus">Contraseña</Label>
+            <Label htmlFor="password" className="font-marcellus text-charcoal">Contraseña</Label>
             <Input
               id="password"
               name="password"
               type="password"
               required
               placeholder="••••••••"
-              disabled={isLoading}
+              disabled={showLoading}
             />
           </div>
+
           {error && (
-            <div className="text-sm text-red-500 mt-2 font-marcellus">{error}</div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="text-sm text-red-600 font-marcellus">
+                {error}
+                {error.includes('User data not found') && (
+                  <div className="mt-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="p-0 h-auto text-xs text-red-600 underline"
+                      onClick={() => router.push('/register')}
+                    >
+                      Try registering again
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+
+        <CardFooter className="flex flex-col space-y-6 pt-6">
           <Button
             type="submit"
-            className="w-full font-marcellus text-lg"
-            disabled={isLoading}
+            className="w-full font-marcellus text-lg h-12 bg-gradient-to-r from-coral to-coral/90 hover:from-coral/90 hover:to-coral shadow-lg"
+            disabled={showLoading}
           >
-            {isLoading
-              ? 'Cargando...'
-              : mode === 'login'
-              ? 'Iniciar Sesión'
-              : 'Registrarse'}
+            {showLoading ? (
+              <div className="flex items-center space-x-2">
+                <PulsingDots color="white" size="sm" />
+                <span>Cargando...</span>
+              </div>
+            ) : (
+              mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'
+            )}
           </Button>
-          <div className="text-sm text-center font-marcellus">
+
+          <div className="text-sm text-center font-marcellus text-charcoal/70">
             {mode === 'login' ? (
               <p>
                 ¿No tienes una cuenta?{' '}
                 <Button
                   variant="link"
-                  className="p-0 font-marcellus"
+                  className="p-0 font-marcellus text-coral hover:text-coral/80"
                   onClick={() => router.push('/register')}
+                  disabled={showLoading}
                 >
                   Regístrate aquí
                 </Button>
@@ -146,8 +199,9 @@ export function AuthForm({ mode }: AuthFormProps) {
                 ¿Ya tienes una cuenta?{' '}
                 <Button
                   variant="link"
-                  className="p-0 font-marcellus"
+                  className="p-0 font-marcellus text-coral hover:text-coral/80"
                   onClick={() => router.push('/login')}
+                  disabled={showLoading}
                 >
                   Inicia sesión aquí
                 </Button>

@@ -6,6 +6,8 @@ import { PatientForm } from '../components/auth/patient-form';
 import { NutritionistForm } from '../components/auth/nutritionist-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { PageTransition, FadeIn } from '../components/ui/page-transition';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface RegistrationData {
   email: string;
@@ -74,15 +76,52 @@ export default function RegisterPage() {
     }
   };
 
+  const slideVariants = {
+    enter: { x: 50, opacity: 0 },
+    center: { x: 0, opacity: 1 },
+    exit: { x: -50, opacity: 0 }
+  };
+
   return (
-    <div className="container flex items-center justify-center min-h-screen py-12">
-      {!selectedRole ? (
-        <RoleSelector onSelect={setSelectedRole} />
-      ) : selectedRole === 'patient' ? (
-        <PatientForm onSubmit={handleSubmit} isLoading={isLoading} />
-      ) : (
-        <NutritionistForm onSubmit={handleSubmit} isLoading={isLoading} />
-      )}
-    </div>
+    <PageTransition className="min-h-screen bg-gradient-to-br from-warm-sand via-warm-sand/90 to-sage/20">
+      <FadeIn className="container flex items-center justify-center min-h-screen py-12">
+        <AnimatePresence mode="wait">
+          {!selectedRole ? (
+            <motion.div
+              key="role-selector"
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <RoleSelector onSelect={setSelectedRole} />
+            </motion.div>
+          ) : selectedRole === 'patient' ? (
+            <motion.div
+              key="patient-form"
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <PatientForm onSubmit={handleSubmit} isLoading={isLoading} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="nutritionist-form"
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <NutritionistForm onSubmit={handleSubmit} isLoading={isLoading} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </FadeIn>
+    </PageTransition>
   );
 } 

@@ -112,7 +112,7 @@ NutriGuide crea un **ecosistema digital conectado** donde:
 
 | Frontend | Backend | Database | AI/ML | Styling |
 |----------|---------|----------|-------|---------|
-| ![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js) | ![Node.js](https://img.shields.io/badge/Node.js-green?style=for-the-badge&logo=node.js&logoColor=white) | ![Supabase](https://img.shields.io/badge/Supabase-green?style=for-the-badge&logo=supabase&logoColor=white) | ![OpenAI](https://img.shields.io/badge/OpenAI-black?style=for-the-badge&logo=openai) | ![Tailwind](https://img.shields.io/badge/Tailwind-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) |
+| ![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js) | ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white) | ![Supabase](https://img.shields.io/badge/Supabase-green?style=for-the-badge&logo=supabase&logoColor=white) | ![OpenAI](https://img.shields.io/badge/OpenAI-black?style=for-the-badge&logo=openai) | ![Tailwind](https://img.shields.io/badge/Tailwind-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) |
 
 </div>
 
@@ -122,11 +122,13 @@ NutriGuide crea un **ecosistema digital conectado** donde:
 graph TB
     A[👤 Paciente] --> B[🌐 Next.js Frontend]
     C[👨‍⚕️ Nutricionista] --> B
-    B --> D[🔄 API Routes]
+    B --> D[🔄 Python API Backend]
     D --> E[🗄️ Supabase Database]
     D --> F[🤖 OpenAI GPT]
     E --> G[🔐 Auth & RLS]
     E --> H[📊 Real-time Data]
+    D --> I[🐍 FastAPI/Django]
+    I --> J[📊 ML Models]
 ```
 
 ---
@@ -135,8 +137,10 @@ graph TB
 
 ### Prerrequisitos
 
-- Node.js 18+
+- Node.js 18+ (para el frontend)
+- Python 3.8+ (para el backend)
 - npm o yarn
+- pip o poetry (para dependencias de Python)
 - Cuenta de Supabase
 - API Key de OpenAI (opcional)
 
@@ -147,18 +151,31 @@ graph TB
 git clone https://github.com/tu-usuario/nutriguide.git
 cd nutriguide
 
-# 2. Instalar dependencias
+# 2. Configurar Frontend (Next.js)
 npm install
 
-# 3. Configurar variables de entorno
+# 3. Configurar Backend (Python)
+cd backend
+pip install -r requirements.txt
+# o si usas poetry:
+# poetry install
+
+# 4. Configurar variables de entorno
 cp .env.example .env.local
 # Edita .env.local con tus credenciales
 
-# 4. Configurar la base de datos
+# 5. Configurar la base de datos
 npx supabase migration up
 
-# 5. Ejecutar en desarrollo
+# 6. Ejecutar en desarrollo
+# Terminal 1 - Frontend
 npm run dev
+
+# Terminal 2 - Backend
+cd backend
+python main.py
+# o
+# uvicorn main:app --reload (si usas FastAPI)
 ```
 
 ### 🔧 Variables de Entorno
@@ -172,9 +189,16 @@ SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 # OpenAI (opcional)
 OPENAI_API_KEY=tu_openai_key
 
-# Next.js
+# Frontend (Next.js)
 NEXTAUTH_SECRET=tu_nextauth_secret
 NEXTAUTH_URL=http://localhost:3000
+
+# Backend (Python)
+PYTHON_API_URL=http://localhost:8000
+DATABASE_URL=postgresql://...
+SECRET_KEY=tu_secret_key_python
+DEBUG=True
+CORS_ORIGINS=http://localhost:3000
 ```
 
 ---
@@ -310,8 +334,10 @@ Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detal
 ## 🙏 Agradecimientos
 
 - **🎨 Diseño**: Inspirado en principios de diseño centrado en el usuario
-- **🔧 Tecnología**: Basado en el ecosistema moderno de JavaScript
+- **🔧 Tecnología**: Basado en los ecosistemas modernos de JavaScript y Python
 - **👥 Comunidad**: Feedback invaluable de nutricionistas y pacientes
+- **🐍 Python**: Por su excelente ecosistema de IA y machine learning
+- **⚛️ React/Next.js**: Por facilitar una UI moderna y reactiva
 
 ---
 

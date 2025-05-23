@@ -14,7 +14,6 @@ This guide helps you migrate your existing data from Neon database to Supabase.
 
 ```bash
 # Export all data from your Neon database
-pg_dump "***REMOVED***" \
   --data-only \
   --inserts \
   --no-owner \

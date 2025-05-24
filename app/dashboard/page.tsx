@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 import DashboardLayout from "@/app/components/dashboard-layout"
-import NutritionChatbot from "@/app/components/nutrition-chatbot"
+import NutritionChatbot from "@/app/components/nutrition-chatbot-v2"
 import GeneratePatientKey from "@/app/components/generate-patient-key"
 import ConnectNutritionist from "@/app/components/connect-nutritionist"
 import { Calendar, MessageSquare, Activity, Users, Bot } from "lucide-react"
@@ -41,6 +41,7 @@ export default function Dashboard() {
     messagesCount: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   const isNutritionist = user?.role === 'nutritionist';
   const isPatient = user?.role === 'patient';
@@ -210,135 +211,24 @@ export default function Dashboard() {
             </div>
           </StaggerItem>
 
-          {/* AI Chat - Main Component */}
+          {/* Main AI Chat - Full Width with Sidebar */}
           <StaggerItem>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* AI Chat - Takes up most space */}
-              <div className="lg:col-span-3">
-                <motion.div
-                  whileHover={{ scale: 1.005 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full"
-                >
-                  <div className="h-[600px]"> {/* Fixed height for better chat experience */}
-                    <NutritionChatbot />
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Compact Sidebar - Role specific content */}
-              <div className="lg:col-span-1 space-y-4">
-                {isNutritionist && (
-                  <>
-                    {/* Nutritionist: Quick Key Generation */}
-                    <Card className="bg-gradient-to-br from-warm-sand to-warm-sand/80 border-soft-rose/20 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Bot className="w-4 h-4 text-coral" />
-                          Generar Clave
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <Button variant="outline" size="sm" className="w-full text-xs">
-                          + Nuevo Paciente
-                        </Button>
-                      </CardContent>
-                    </Card>
-                    
-                    {/* Nutritionist: AI Status */}
-                    <Card className="bg-gradient-to-br from-warm-sand to-warm-sand/80 border-soft-rose/20 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Bot className="w-4 h-4 text-coral" />
-                          Estado IA
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="text-xs text-charcoal/70 mb-2">
-                          Filosofía: {checkingAi ? (
-                            <span className="font-medium text-gray-500">Verificando...</span>
-                          ) : aiConfigured ? (
-                            <span className="font-medium text-green-600">✓ Configurada</span>
-                          ) : (
-                            <span className="font-medium text-red-500">No configurada</span>
-                          )}
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full text-xs"
-                          onClick={() => window.location.href = '/dashboard/ai-config'}
-                          disabled={checkingAi}
-                        >
-                          {aiConfigured ? 'Editar IA' : 'Configurar IA'}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </>
-                )}
-
-                {isPatient && (
-                  <>
-                    {/* Patient: Quick Status */}
-                    <Card className="bg-gradient-to-br from-warm-sand to-warm-sand/80 border-soft-rose/20 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Activity className="w-4 h-4 text-sage-green" />
-                          Hoy
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0 space-y-2">
-                        <div className="flex justify-between text-xs">
-                          <span>Objetivos</span>
-                          <span className="font-medium">2/3</span>
-                        </div>
-                        {user?.nutritionist_id && (
-                          <div className="text-xs text-coral">✓ Nutricionista conectado</div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Patient: Quick Actions */}
-                    <Card className="bg-gradient-to-br from-warm-sand to-warm-sand/80 border-soft-rose/20 shadow-lg">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-soft-rose" />
-                          Acciones
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0 space-y-2">
-                        <Button variant="outline" size="sm" className="w-full text-xs justify-start" disabled>
-                          📊 Registrar
-                        </Button>
-                        <Button variant="outline" size="sm" className="w-full text-xs justify-start" disabled>
-                          🎯 Objetivos
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </>
-                )}
-
-                {/* AI Chat Tip */}
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="text-center">
-                      <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mx-auto mb-2">
-                        <MessageSquare className="w-3 h-3 text-white" />
-                      </div>
-                      <h3 className="font-semibold text-blue-900 mb-1 text-xs">
-                        💡 Tip
-                      </h3>
-                      <p className="text-blue-800 text-xs">
-                        Pregunta sobre recetas, nutrición o tus objetivos de salud
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+            <div className="h-[calc(100vh-380px)] min-h-[600px]">
+              <motion.div
+                whileHover={{ scale: 1.002 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <NutritionChatbot
+                  chatId={selectedChatId}
+                  onChatChange={setSelectedChatId}
+                  showChatList={true}
+                />
+              </motion.div>
             </div>
           </StaggerItem>
 
-          {/* Full Width Tools - Below the main content */}
+          {/* Bottom Section - Conditional based on user role */}
           <StaggerItem>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {isNutritionist && (
@@ -359,16 +249,30 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-blue-900 mb-2">
-                        🚀 Estás en la versión MVP de NutriGuide
+                        🚀 {isNutritionist ? 'NutriGuide IA para Profesionales' : 'NutriGuide IA'}
                       </h3>
                       <p className="text-blue-800 text-sm mb-3">
-                        Esta es una versión básica enfocada en el chat con IA. Próximamente agregaremos:
+                        {isNutritionist 
+                          ? 'Tu asistente de IA personalizado que extiende tu práctica profesional con orientación automatizada para tus pacientes.'
+                          : 'Tu asistente nutricional inteligente que guarda automáticamente todas tus conversaciones.'
+                        }
                       </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-700">
-                        <div>• 📝 Planificación de comidas</div>
-                        <div>• 📊 Seguimiento nutricional</div>
-                        <div>• 👥 Gestión de pacientes</div>
-                        <div>• ⚙️ Configuración avanzada</div>
+                      <div className="grid grid-cols-1 gap-2 text-sm text-blue-700">
+                        {isNutritionist ? (
+                          <>
+                            <div>• 🎯 IA configurada con tu filosofía nutricional</div>
+                            <div>• 👥 Soporte personalizado para tus pacientes</div>
+                            <div>• 📊 Monitoreo de interacciones de IA</div>
+                            <div>• 🔧 Control total sobre las recomendaciones</div>
+                          </>
+                        ) : (
+                          <>
+                            <div>• 💬 Conversaciones guardadas automáticamente</div>
+                            <div>• 🔍 Historial completo de consultas</div>
+                            <div>• 🎯 Consejos personalizados</div>
+                            <div>• 🏥 Integración con nutricionistas</div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

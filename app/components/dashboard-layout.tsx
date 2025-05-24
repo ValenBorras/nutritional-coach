@@ -32,7 +32,6 @@ export default function DashboardLayout({
       return [
         ...baseItems,
         { icon: <Users size={20} />, label: "Pacientes", href: "/dashboard/patients" },
-        { icon: <MessageSquare size={20} />, label: "Messages", href: "/dashboard/messages" },
         { icon: <Settings size={20} />, label: "Settings", href: "/dashboard/settings" },
       ]
     } else {
@@ -40,7 +39,6 @@ export default function DashboardLayout({
         ...baseItems,
         { icon: <PieChart size={20} />, label: "Nutrition", href: "/dashboard/nutrition" },
         { icon: <Calendar size={20} />, label: "Meal Plans", href: "/dashboard/meal-plans" },
-        { icon: <MessageSquare size={20} />, label: "Messages", href: "/dashboard/messages" },
         { icon: <Settings size={20} />, label: "Settings", href: "/dashboard/settings" },
       ]
     }

@@ -24,10 +24,10 @@ export async function GET(request: NextRequest) {
 
     // Get active patients count
     const { count: activePatientsCount } = await supabase
-      .from('users')
+      .from('patient_keys')
       .select('*', { count: 'exact', head: true })
       .eq('nutritionist_id', user.id)
-      .eq('role', 'patient');
+      .eq('used', true);
 
     // Get generated keys count
     const { count: generatedKeysCount } = await supabase
@@ -35,11 +35,25 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .eq('nutritionist_id', user.id);
 
-    // Get AI consultations count (count of conversations)
-    const { count: aiConsultationsCount } = await supabase
-      .from('conversations')
-      .select('*', { count: 'exact', head: true })
-      .eq('nutritionist_id', user.id);
+    // Get AI consultations count (count of chats from connected patients)
+    // First get all patient IDs connected to this nutritionist
+    const { data: connectedPatients } = await supabase
+      .from('users')
+      .select('id')
+      .eq('nutritionist_id', user.id)
+      .eq('role', 'patient');
+
+    const patientIds = connectedPatients?.map(p => p.id) || [];
+
+    // Then count chats from these patients
+    let aiConsultationsCount = 0;
+    if (patientIds.length > 0) {
+      const { count } = await supabase
+        .from('chats')
+        .select('*', { count: 'exact', head: true })
+        .in('user_id', patientIds);
+      aiConsultationsCount = count || 0;
+    }
 
     return NextResponse.json({
       activePatients: activePatientsCount || 0,

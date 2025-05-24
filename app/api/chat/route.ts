@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, conversationHistory = [] } = body;
+    const { message, conversationHistory = [], chatId } = body;
 
     if (!message) {
       return NextResponse.json(
@@ -23,6 +23,24 @@ export async function POST(req: NextRequest) {
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+
+    // If chatId is provided, verify it belongs to the user
+    let currentChatId = chatId;
+    if (chatId) {
+      const { data: chat, error: chatError } = await supabase
+        .from('chats')
+        .select('id')
+        .eq('id', chatId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (chatError || !chat) {
+        return NextResponse.json(
+          { error: "Chat not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // Get user data
@@ -202,6 +220,21 @@ You're here to support their professional practice and enhance their ability to 
       { role: "user", content: message }
     ];
 
+    // Save user message to database if chatId is provided
+    if (currentChatId) {
+      try {
+        await supabase
+          .from('messages')
+          .insert({
+            chat_id: currentChatId,
+            role: 'user',
+            content: message
+          });
+      } catch (error) {
+        console.error('Error saving user message:', error);
+      }
+    }
+
     // Call OpenAI API
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -237,12 +270,27 @@ You're here to support their professional practice and enhance their ability to 
       );
     }
 
-    // Optional: Store conversation in database for future analysis
-    // You could add a conversations table to track chat history
+    // Save AI response to database if chatId is provided
+    if (currentChatId) {
+      try {
+        await supabase
+          .from('messages')
+          .insert({
+            chat_id: currentChatId,
+            role: 'assistant',
+            content: aiMessage,
+            tokens_used: aiData.usage?.total_tokens,
+            model_used: "gpt-4o-mini"
+          });
+      } catch (error) {
+        console.error('Error saving AI message:', error);
+      }
+    }
 
     return NextResponse.json({
       message: aiMessage,
       timestamp: new Date().toISOString(),
+      chatId: currentChatId
     });
 
   } catch (error) {

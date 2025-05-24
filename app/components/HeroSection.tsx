@@ -55,10 +55,11 @@ export default function HeroSection() {
                 <Image
                   src="/nutricionista.webp"
                   alt="Mujer disfrutando comida saludable"
-                  width={200}
-                  height={200}
+                  width={600}
+                  height={600}
                   className="object-cover w-full h-full"
                   priority
+                  sizes="(max-width: 768px) 300px, 400px"
                 />
               </div>
             </div>

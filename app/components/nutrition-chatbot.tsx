@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { Send, Bot, User, Loader2 } from "lucide-react"
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   role: "user" | "assistant"
@@ -22,6 +23,16 @@ export default function NutritionChatbot() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to bottom when new messages are added
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return
@@ -94,7 +105,7 @@ export default function NutritionChatbot() {
 
   return (
     <Card className="h-full flex flex-col bg-warm-sand border-soft-rose/20">
-      <CardHeader className="pb-3 border-b border-soft-rose/10">
+      <CardHeader className="pb-3 border-b border-soft-rose/10 flex-shrink-0">
         <CardTitle className="text-xl font-medium flex items-center gap-2">
           <Bot className="w-6 h-6 text-coral" />
           Tu Asistente Nutricional con IA
@@ -106,8 +117,10 @@ export default function NutritionChatbot() {
           <div className="text-sm text-red-500 mt-2 bg-red-50 p-2 rounded">{error}</div>
         )}
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
-        <div className="flex-1 overflow-y-auto p-6 space-y-4" style={{ maxHeight: '450px' }}>
+      
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+        {/* Messages Container - Takes up available space and scrolls */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message, index) => (
             <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className="flex items-start gap-3 max-w-[80%]">
@@ -123,7 +136,32 @@ export default function NutritionChatbot() {
                       : "bg-sage-green/20 text-charcoal rounded-tl-none"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  <div className="text-sm leading-relaxed [&_li_p]:inline [&_li_p]:m-0 [&_li]:flex [&_li]:items-start [&_li]:gap-1">
+                    <ReactMarkdown 
+                      components={{
+                        p: ({ children }) => <div className="mb-2 last:mb-0">{children}</div>,
+                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        em: ({ children }) => <em className="italic">{children}</em>,
+                        code: ({ children }) => <code className="bg-black/10 px-1 py-0.5 rounded text-xs">{children}</code>,
+                        ul: ({ children }) => <ul className="list-none my-2">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-none my-2">{children}</ol>,
+                        li: ({ children, index, ordered }) => (
+                          <li className="text-sm leading-relaxed flex items-start gap-2 mb-1">
+                            <span className="text-charcoal/60 font-medium min-w-[1.5rem]">
+                              {ordered ? `${(index || 0) + 1}.` : '•'}
+                            </span>
+                            <span className="flex-1">{children}</span>
+                          </li>
+                        ),
+                        // Prevent unwanted elements
+                        h1: ({ children }) => <div className="font-semibold text-base mb-1">{children}</div>,
+                        h2: ({ children }) => <div className="font-semibold text-sm mb-1">{children}</div>,
+                        h3: ({ children }) => <div className="font-semibold text-sm mb-1">{children}</div>,
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
                   <p className="text-xs opacity-70 mt-2 text-right">{message.timestamp}</p>
                 </div>
                 {message.role === "user" && (
@@ -150,23 +188,27 @@ export default function NutritionChatbot() {
               </div>
             </div>
           )}
+          
+          {/* Scroll anchor */}
+          <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-6 border-t border-soft-rose/10 mt-auto bg-gradient-to-r from-warm-sand/50 to-mist-white/50">
-          <div className="flex gap-3">
+        {/* Input Section - Fixed at bottom */}
+        <div className="flex-shrink-0 p-6 border-t border-soft-rose/10 bg-mist-white/50">
+          <div className="flex gap-3 items-end">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Pregúntame sobre nutrición, recetas, o tus objetivos de salud..."
-              className="flex-1 px-4 py-3 rounded-xl bg-mist-white border border-soft-rose/20 focus:outline-none focus:ring-2 focus:ring-soft-rose/50 text-charcoal resize-none min-h-[50px] max-h-32 text-sm"
+              className="flex-1 px-4 py-3 rounded-xl bg-mist-white border border-soft-rose/20 focus:outline-none focus:ring-2 focus:ring-soft-rose/50 text-charcoal resize-none min-h-[50px] max-h-24 text-sm"
               disabled={isLoading}
               rows={1}
               style={{ height: 'auto' }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+                target.style.height = Math.min(target.scrollHeight, 96) + 'px'; // max-h-24 = 96px
               }}
             />
             <Button

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 import DashboardLayout from "@/app/components/dashboard-layout"
@@ -42,36 +42,10 @@ export default function Dashboard() {
   });
   const [loadingStats, setLoadingStats] = useState(true);
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-coral"></div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   const isNutritionist = user?.role === 'nutritionist';
   const isPatient = user?.role === 'patient';
 
-  // Check AI configuration status for nutritionists
-  useEffect(() => {
-    if (isNutritionist && user?.id) {
-      checkAIConfiguration();
-    } else {
-      setCheckingAi(false);
-    }
-  }, [user?.id, isNutritionist]);
-
-  // Fetch statistics based on user role
-  useEffect(() => {
-    if (user?.id) {
-      fetchStats();
-    }
-  }, [user?.id, isNutritionist, isPatient]);
-
-  const checkAIConfiguration = async () => {
+  const checkAIConfiguration = useCallback(async () => {
     try {
       const response = await fetch('/api/nutritionist/ai-rules');
       if (response.ok) {
@@ -83,9 +57,9 @@ export default function Dashboard() {
     } finally {
       setCheckingAi(false);
     }
-  };
+  }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoadingStats(true);
       
@@ -107,7 +81,33 @@ export default function Dashboard() {
     } finally {
       setLoadingStats(false);
     }
-  };
+  }, [isNutritionist, isPatient]);
+
+  // Check AI configuration status for nutritionists
+  useEffect(() => {
+    if (isNutritionist && user?.id) {
+      checkAIConfiguration();
+    } else {
+      setCheckingAi(false);
+    }
+  }, [user?.id, isNutritionist, checkAIConfiguration]);
+
+  // Fetch statistics based on user role
+  useEffect(() => {
+    if (user?.id) {
+      fetchStats();
+    }
+  }, [user?.id, fetchStats]);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-coral"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -148,13 +148,13 @@ export default function Dashboard() {
                         <p className="text-white/80 text-sm">
                           {isNutritionist ? 'Pacientes Activos' : 'Días Activos'}
                         </p>
-                        <p className="text-3xl font-bold">
+                        <div className="text-3xl font-bold">
                           {loadingStats ? (
                             <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
                           ) : (
                             isNutritionist ? nutritionistStats.activePatients : patientStats.activeDays
                           )}
-                        </p>
+                        </div>
                       </div>
                       <Users className="w-8 h-8 text-white/80" />
                     </div>
@@ -170,13 +170,13 @@ export default function Dashboard() {
                         <p className="text-white/80 text-sm">
                           {isNutritionist ? 'Consultas IA' : 'Conversaciones'}
                         </p>
-                        <p className="text-3xl font-bold">
+                        <div className="text-3xl font-bold">
                           {loadingStats ? (
                             <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
                           ) : (
                             isNutritionist ? nutritionistStats.aiConsultations : patientStats.conversations
                           )}
-                        </p>
+                        </div>
                       </div>
                       <MessageSquare className="w-8 h-8 text-white/80" />
                     </div>
@@ -192,7 +192,7 @@ export default function Dashboard() {
                         <p className="text-white/80 text-sm">
                           {isNutritionist ? 'Claves Generadas' : 'Progreso'}
                         </p>
-                        <p className="text-3xl font-bold">
+                        <div className="text-3xl font-bold">
                           {loadingStats ? (
                             <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
                           ) : (
@@ -200,7 +200,7 @@ export default function Dashboard() {
                               ? nutritionistStats.generatedKeys 
                               : `${patientStats.progress}%`
                           )}
-                        </p>
+                        </div>
                       </div>
                       <Activity className="w-8 h-8 text-white/80" />
                     </div>

@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
+import { UserAvatar } from "@/app/components/ui/user-avatar"
 import { Home, Calendar, PieChart, Settings, MessageSquare, Menu, X, User, LogOut, Bell, Users } from "lucide-react"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useAuth } from "@/hooks/use-auth"
@@ -118,11 +119,11 @@ export default function DashboardLayout({
             {/* User Profile Section */}
             <div className={`flex items-center gap-4 ${isMobile ? "" : "ml-auto"}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-sage-green/20 flex items-center justify-center">
-                  <span className="font-semibold text-sage-green">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
-                  </span>
-                </div>
+                <UserAvatar
+                  src={user?.image}
+                  name={user?.name}
+                  size="md"
+                />
                 <div className="hidden md:block">
                   <p className="font-medium text-charcoal">{user?.name || 'Usuario'}</p>
                   <p className="text-xs text-charcoal/60">{user?.email || 'Sin email'}</p>

@@ -21,6 +21,7 @@ import DashboardLayout from "@/app/components/dashboard-layout";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
+import { UserAvatar } from "@/app/components/ui/user-avatar";
 import { Plus, Copy, Check, User, Clock, Key } from "lucide-react";
 import { useAuth } from '@/app/components/auth/auth-provider';
 
@@ -29,12 +30,14 @@ interface PatientKey {
   key: string;
   used: boolean;
   used_at: string | null;
-  created_at: string;
+  created_at: string | null;
   patient_id: string | null;
   users: {
     name: string;
     email: string;
+    image?: string | null;
   } | null;
+  isVirtual?: boolean; // Flag for patients connected post-registration
 }
 
 export default function PatientsPage() {
@@ -101,7 +104,8 @@ export default function PatientsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Fecha no disponible';
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'short',
@@ -163,7 +167,7 @@ export default function PatientsPage() {
               <div className="text-2xl font-marcellus text-charcoal">
                 {usedKeys.length}
               </div>
-              <p className="text-sm text-charcoal/70">Claves utilizadas</p>
+              <p className="text-sm text-charcoal/70">Total de pacientes conectados</p>
             </CardContent>
           </Card>
 
@@ -191,7 +195,7 @@ export default function PatientsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-marcellus text-charcoal">
-                {patientKeys.length}
+                {patientKeys.filter(key => !key.isVirtual).length}
               </div>
               <p className="text-sm text-charcoal/70">Generadas hasta ahora</p>
             </CardContent>
@@ -250,7 +254,7 @@ export default function PatientsPage() {
           </Card>
         )}
 
-        {/* Used Keys / Active Patients */}
+        {/* Active Patients */}
         {usedKeys.length > 0 && (
           <Card className="bg-warm-sand border-soft-rose/20">
             <CardHeader>
@@ -258,7 +262,7 @@ export default function PatientsPage() {
                 Pacientes Activos
               </CardTitle>
               <p className="text-sm text-charcoal/70">
-                Pacientes que se han registrado usando tus claves
+                Todos los pacientes conectados a tu práctica
               </p>
             </CardHeader>
             <CardContent>
@@ -266,9 +270,11 @@ export default function PatientsPage() {
                 {usedKeys.map((keyRecord) => (
                   <div key={keyRecord.id} className="flex items-center justify-between p-4 bg-mist-white rounded-lg border border-soft-rose/20">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-sage-green/20 flex items-center justify-center">
-                        <User className="w-5 h-5 text-sage-green" />
-                      </div>
+                      <UserAvatar
+                        src={keyRecord.users?.image}
+                        name={keyRecord.users?.name}
+                        size="md"
+                      />
                       <div>
                         <div className="font-semibold text-charcoal">
                           {keyRecord.users?.name || 'Usuario sin nombre'}
@@ -277,7 +283,10 @@ export default function PatientsPage() {
                           {keyRecord.users?.email || 'Sin email'}
                         </div>
                         <div className="text-xs text-charcoal/60">
-                          Clave: {keyRecord.key} • Registrado el {keyRecord.used_at ? formatDate(keyRecord.used_at) : 'Fecha desconocida'}
+                          {keyRecord.isVirtual 
+                            ? 'Conectado a tu práctica'
+                            : `Clave: ${keyRecord.key} • Registrado el ${formatDate(keyRecord.used_at)}`
+                          }
                         </div>
                       </div>
                     </div>

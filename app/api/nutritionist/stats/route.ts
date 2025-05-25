@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get active patients count
+    // Get active patients count (patients who have this nutritionist's ID)
     const { count: activePatientsCount } = await supabase
-      .from('patient_keys')
+      .from('users')
       .select('*', { count: 'exact', head: true })
       .eq('nutritionist_id', user.id)
-      .eq('used', true);
+      .eq('role', 'patient');
 
     // Get generated keys count
     const { count: generatedKeysCount } = await supabase
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       .eq('nutritionist_id', user.id);
 
     // Get AI consultations count (count of chats from connected patients)
-    // First get all patient IDs connected to this nutritionist
+    // Get all patient IDs connected to this nutritionist
     const { data: connectedPatients } = await supabase
       .from('users')
       .select('id')

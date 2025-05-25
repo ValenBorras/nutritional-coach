@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
@@ -8,10 +8,11 @@ import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Badge } from "@/app/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { UserAvatar } from "@/app/components/ui/user-avatar";
 import DashboardLayout from "@/app/components/dashboard-layout";
 import ConnectNutritionist from "@/app/components/connect-nutritionist";
 import { useAuth } from "@/app/components/auth/auth-provider";
-import { User, Camera, Target, Heart, AlertCircle, Plus, X } from "lucide-react";
+import { User, Camera, Target, Heart, AlertCircle, Plus, X, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface UserData {
@@ -34,7 +35,6 @@ interface ProfileData {
   dietary_restrictions?: string[];
   medical_conditions?: string[];
   specializations?: string[];
-  education?: string;
   experience?: number;
   certifications?: string[];
 }
@@ -49,8 +49,10 @@ export default function SettingsPage() {
   const [profileData, setProfileData] = useState<ProfileData>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State for dynamic arrays
   const [newGoal, setNewGoal] = useState('');
@@ -141,6 +143,55 @@ export default function SettingsPage() {
     });
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Tipo de archivo no válido. Solo se permiten JPEG, PNG y WebP.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('Archivo demasiado grande. El tamaño máximo es 5MB.');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await fetch('/api/user/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(prev => ({ ...prev, image: data.imageUrl }));
+        setSuccess('Foto de perfil actualizada exitosamente!');
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Error subiendo la imagen');
+      }
+    } catch (error) {
+      setError('Error subiendo la imagen');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -196,36 +247,60 @@ export default function SettingsPage() {
               {/* Profile Picture */}
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-sage-green/20 flex items-center justify-center overflow-hidden">
-                    {userData.image ? (
-                      <img
-                        src={userData.image}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl font-semibold text-sage-green">
-                        {userData.name?.charAt(0).toUpperCase() || 'U'}
-                      </span>
-                    )}
-                  </div>
+                  <UserAvatar
+                    src={userData.image}
+                    name={userData.name}
+                    size="xl"
+                    className="w-20 h-20"
+                  />
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     className="absolute -bottom-2 -right-2 w-8 h-8 p-0 rounded-full bg-white border-2 border-soft-rose/20"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
                   >
-                    <Camera size={14} />
+                    {uploading ? (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-coral"></div>
+                    ) : (
+                      <Camera size={14} />
+                    )}
                   </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
                 </div>
                 <div className="flex-1">
-                  <Label htmlFor="image">URL de imagen de perfil</Label>
-                  <Input
-                    id="image"
-                    value={userData.image || ''}
-                    onChange={(e) => setUserData({ ...userData, image: e.target.value })}
-                    placeholder="https://ejemplo.com/mi-foto.jpg"
-                    className="mt-1"
-                  />
+                  <Label>Foto de perfil</Label>
+                  <div className="mt-2 space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full"
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-coral mr-2"></div>
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Subir nueva foto
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-charcoal/60">
+                      JPG, PNG o WebP. Máximo 5MB.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -369,17 +444,7 @@ export default function SettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="education">Educación</Label>
-                    <Input
-                      id="education"
-                      value={profileData.education || ''}
-                      onChange={(e) => setProfileData({ ...profileData, education: e.target.value })}
-                      placeholder="Universidad, títulos..."
-                      className="mt-1"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div>
                     <Label htmlFor="experience">Años de experiencia</Label>
                     <Input

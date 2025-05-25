@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { UserAvatar } from "@/app/components/ui/user-avatar"
 import { Send, Bot, User, Loader2, Plus, MessageSquare, Archive, MoreVertical, Menu, X } from "lucide-react"
 import ReactMarkdown from 'react-markdown'
 import {
@@ -11,6 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu"
+import { useMediaQuery } from "@/hooks/use-media-query"
+import { useAuth } from "@/hooks/use-auth"
 
 interface Message {
   id?: string
@@ -38,6 +41,7 @@ export default function NutritionChatbot({
   onChatChange, 
   showChatList = false 
 }: NutritionChatbotProps) {
+  const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -701,9 +705,12 @@ export default function NutritionChatbot({
                     <p className="text-xs opacity-70 mt-2 text-right">{message.timestamp}</p>
                   </div>
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-soft-rose/20 flex items-center justify-center flex-shrink-0 mt-1">
-                      <User className="w-4 h-4 text-soft-rose" />
-                    </div>
+                    <UserAvatar
+                      src={user?.image}
+                      name={user?.name}
+                      size="sm"
+                      className="flex-shrink-0 mt-1"
+                    />
                   )}
                 </div>
               </div>

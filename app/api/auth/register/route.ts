@@ -149,7 +149,6 @@ export async function POST(req: Request) {
     } : {
       specializations: [],
       certifications: [],
-      education: otherData.education || "",
       experience: otherData.experience ? parseInt(otherData.experience.toString()) : 0,
     }
 

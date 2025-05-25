@@ -52,58 +52,66 @@ export async function GET() {
       );
     }
 
+    // Get ALL patients connected to this nutritionist (regardless of how they connected)
+    const adminSupabase = createAdminClient();
+    const { data: connectedPatients, error: patientsError } = await adminSupabase
+      .from('users')
+      .select('id, name, email, image')
+      .eq('nutritionist_id', user.id)
+      .eq('role', 'patient');
+
+    if (patientsError) {
+      console.error('Error fetching connected patients:', patientsError);
+      return NextResponse.json(
+        { message: 'Error al obtener los pacientes conectados' },
+        { status: 500 }
+      );
+    }
+
+    console.log('🔍 DEBUG - Connected patients found:', connectedPatients?.length || 0);
+
     // Get patient IDs that have used keys
     const usedPatientIds = patientKeys
       ?.filter(key => key.used && key.patient_id)
       .map(key => key.patient_id) || [];
 
-    // Get user information for these patients (using admin client to bypass RLS)
-    let patientUsers: any[] = [];
-    if (usedPatientIds.length > 0) {
-      console.log('🔍 DEBUG - Looking for patient IDs:', usedPatientIds);
-      
-      // Try with admin client first to bypass RLS
-      console.log('🔄 Using admin client to bypass RLS...');
-      const adminSupabase = createAdminClient();
-      const { data: adminUsers, error: adminUsersError } = await adminSupabase
-        .from('users')
-        .select('id, name, email')
-        .in('id', usedPatientIds);
+    console.log('🔍 DEBUG - Patient IDs with used keys:', usedPatientIds);
 
-      if (adminUsersError) {
-        console.error('Error fetching users with admin client:', adminUsersError);
-        
-        // Fallback to regular client
-        console.log('🔄 Fallback to regular client...');
-        const { data: users, error: usersError } = await supabase
-          .from('users')
-          .select('id, name, email')
-          .in('id', usedPatientIds);
-
-        if (usersError) {
-          console.error('Error fetching users with regular client:', usersError);
-        } else {
-          patientUsers = users || [];
-          console.log('✅ Successfully fetched users with regular client');
-        }
-      } else {
-        patientUsers = adminUsers || [];
-        console.log('✅ Successfully fetched users with admin client');
-      }
-    }
-
-    // Combine the data
+    // Combine the data - enrich keys with patient info
     const enrichedKeys = patientKeys?.map(key => ({
       ...key,
-      users: key.patient_id ? patientUsers.find(user => user.id === key.patient_id) || null : null
+      users: key.patient_id ? connectedPatients?.find(patient => patient.id === key.patient_id) || null : null
     })) || [];
 
+    // Add patients who are connected but don't have a corresponding patient_key record
+    // This can happen if they connected after registration or if there are data inconsistencies
+    const patientsWithoutKeys = connectedPatients?.filter(patient => 
+      !usedPatientIds.includes(patient.id)
+    ) || [];
+
+    // For patients without keys, create virtual key entries to show them in the UI
+    const virtualKeys = patientsWithoutKeys.map(patient => ({
+      id: `virtual-${patient.id}`,
+      key: 'CONNECTED_POST_REGISTRATION',
+      used: true,
+      used_at: null, // We don't have this info for post-registration connections
+      created_at: null, // We don't have this info
+      patient_id: patient.id,
+      users: patient,
+      isVirtual: true // Flag to indicate this is a virtual entry
+    }));
+
+    // Combine real keys and virtual keys
+    const allKeys = [...enrichedKeys, ...virtualKeys];
+
     // Debug logging
-    console.log('🔍 DEBUG - Patient users found:', patientUsers.length);
-    console.log('🔍 DEBUG - Enriched keys:', JSON.stringify(enrichedKeys, null, 2));
+    console.log('🔍 DEBUG - Total patients connected:', connectedPatients?.length || 0);
+    console.log('🔍 DEBUG - Patients with keys:', usedPatientIds.length);
+    console.log('🔍 DEBUG - Patients without keys:', patientsWithoutKeys.length);
+    console.log('🔍 DEBUG - Final enriched keys:', JSON.stringify(allKeys, null, 2));
 
     return NextResponse.json({ 
-      keys: enrichedKeys
+      keys: allKeys
     }, { status: 200 });
   } catch (error) {
     console.error('Error fetching patient keys:', error);

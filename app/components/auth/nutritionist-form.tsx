@@ -54,7 +54,6 @@ export function NutritionistForm({ onSubmit, isLoading }: NutritionistFormProps)
       email: formData.get('email') as string,
       password: formData.get('password') as string,
       name: formData.get('name') as string,
-      education: formData.get('education') as string,
       experience: parseInt(formData.get('experience') as string),
       dietPhilosophy: formData.get('dietPhilosophy') as string,
       specializations,
@@ -99,16 +98,6 @@ export function NutritionistForm({ onSubmit, isLoading }: NutritionistFormProps)
               <Label htmlFor="experience">Años de Experiencia</Label>
               <Input id="experience" name="experience" type="number" min="0" required />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="education">Educación y Títulos</Label>
-            <Textarea 
-              id="education" 
-              name="education" 
-              placeholder="Describe tu formación académica y títulos relevantes"
-              required 
-            />
           </div>
 
           <div className="space-y-2">

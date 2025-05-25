@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,8 +23,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get active patients count (patients who have this nutritionist's ID)
-    const { count: activePatientsCount } = await supabase
+    // Use admin client to get active patients count (patients who have this nutritionist's ID)
+    const adminSupabase = createAdminClient();
+    const { count: activePatientsCount } = await adminSupabase
       .from('users')
       .select('*', { count: 'exact', head: true })
       .eq('nutritionist_id', user.id)
@@ -36,8 +38,8 @@ export async function GET(request: NextRequest) {
       .eq('nutritionist_id', user.id);
 
     // Get AI consultations count (count of chats from connected patients)
-    // Get all patient IDs connected to this nutritionist
-    const { data: connectedPatients } = await supabase
+    // Get all patient IDs connected to this nutritionist using admin client
+    const { data: connectedPatients } = await adminSupabase
       .from('users')
       .select('id')
       .eq('nutritionist_id', user.id)

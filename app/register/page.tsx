@@ -61,11 +61,11 @@ export default function RegisterPage() {
           duration: 10000,
         });
       } else {
-        toast.success('Registro exitoso');
+        toast.success('Registro exitoso - Revisa tu email para verificar tu cuenta');
       }
 
-      // After successful registration, redirect to dashboard
-      router.push('/dashboard');
+      // After successful registration, redirect to check email page
+      router.push(`/check-email?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
       console.error('Error durante el registro:', error);
       const message = error instanceof Error ? error.message : 'Ocurrió un error durante el registro';

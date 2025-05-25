@@ -1,0 +1,42 @@
+=====================================
+          NUTRIGUIDE
+    Tu guía personalizada de nutrición
+=====================================
+
+¡Bienvenido a NutriGuide! 🥗
+
+Gracias por registrarte en nuestra plataforma. Para comenzar tu viaje hacia una alimentación más saludable, necesitamos verificar tu dirección de correo electrónico.
+
+VERIFICAR MI EMAIL:
+{{ .ConfirmationURL }}
+
+¿Qué sigue después?
+===================
+1. Haz clic en el enlace de arriba
+2. Serás redirigido a nuestra plataforma
+3. Completa tu perfil nutricional
+4. ¡Comienza a recibir recomendaciones personalizadas!
+
+🔒 NOTA DE SEGURIDAD
+===================
+Este enlace de verificación expirará en 24 horas por tu seguridad. Si no solicitaste esta cuenta, puedes ignorar este email de forma segura.
+
+¿El enlace no funciona?
+======================
+Copia y pega la siguiente URL completa en tu navegador:
+{{ .ConfirmationURL }}
+
+=====================================
+
+NutriGuide - Tu compañero en la nutrición saludable
+
+¿Necesitas ayuda? Contáctanos en soporte@nutriguide.com
+
+Visitar NutriGuide: {{ .SiteURL }}
+Política de Privacidad: {{ .SiteURL }}/politica-privacidad
+Términos de Uso: {{ .SiteURL }}/terminos
+
+© 2024 NutriGuide. Todos los derechos reservados.
+Este email fue enviado porque te registraste en NutriGuide.
+
+===================================== 

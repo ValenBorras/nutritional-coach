@@ -35,10 +35,35 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // You can add user-based logic here if needed in the future
-  // For now, we just ensure the session is properly handled
+  // Define protected routes that require authentication
+  const protectedRoutes = ['/dashboard']
+  const authRoutes = ['/login', '/register', '/check-email', '/verify-email']
+  const currentPath = request.nextUrl.pathname
+
+  // Check if current path is a protected route
+  const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route))
+  const isAuthRoute = authRoutes.some(route => currentPath.startsWith(route))
+
   if (user) {
-    // User is authenticated, continue
+    // User is authenticated, check email verification for protected routes
+    if (isProtectedRoute && !user.email_confirmed_at) {
+      // Redirect unverified users to check-email page
+      const redirectUrl = new URL('/check-email', request.url)
+      if (user.email) {
+        redirectUrl.searchParams.set('email', user.email)
+      }
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // If verified user tries to access auth routes, redirect to dashboard
+    if (isAuthRoute && user.email_confirmed_at && currentPath !== '/verify-email') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  } else {
+    // No user, redirect to login if trying to access protected routes
+    if (isProtectedRoute) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

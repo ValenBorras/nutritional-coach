@@ -105,6 +105,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loadingRef.current = true;
       console.log('📊 Loading user data for:', authUser.email);
 
+      // Check if email is verified
+      if (!authUser.email_confirmed_at) {
+        console.log('❌ Email not verified for user:', authUser.email);
+        setAuthState({
+          user: null,
+          profile: null,
+          authUser,
+          loading: false,
+          error: 'Email not verified. Please check your email for verification link.',
+        });
+        return;
+      }
+
       const response = await fetch(`/api/user?email=${authUser.email}`);
       if (!response.ok) {
         const errorData = await response.json();

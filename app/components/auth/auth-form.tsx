@@ -65,14 +65,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           throw new Error(data.message || 'Error al registrar usuario');
         }
 
-        // After successful registration, sign in automatically
-        const { error: signInError } = await signInWithEmail(email, password);
-
-        if (signInError) {
-          throw new Error(signInError.message);
-        }
-
-        // Don't redirect here - let the useEffect handle it after user data loads
+        // After successful registration, redirect to check email page
+        router.push(`/check-email?email=${encodeURIComponent(email)}`);
+        return; // Don't continue with sign in
       } else {
         const { error: signInError } = await signInWithEmail(email, password);
 
@@ -157,6 +152,21 @@ export function AuthForm({ mode }: AuthFormProps) {
                       onClick={() => router.push('/register')}
                     >
                       Try registering again
+                    </Button>
+                  </div>
+                )}
+                {error.includes('Email not verified') && (
+                  <div className="mt-2 space-y-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="p-0 h-auto text-xs text-red-600 underline block"
+                      onClick={() => {
+                        const email = (document.getElementById('email') as HTMLInputElement)?.value;
+                        router.push(`/check-email?email=${encodeURIComponent(email || '')}`);
+                      }}
+                    >
+                      Check your email for verification link
                     </Button>
                   </div>
                 )}

@@ -7,6 +7,7 @@ import { Label } from "@/app/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Textarea } from "@/app/components/ui/textarea";
+import { DateSlider } from "@/app/components/ui/date-slider";
 
 interface PatientFormProps {
   onSubmit: (data: any) => Promise<void>;
@@ -94,7 +95,7 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="birthDate">Fecha de Nacimiento</Label>
-              <Input id="birthDate" name="birthDate" type="date" required />
+              <DateSlider name="birthDate" required />
             </div>
           </div>
 

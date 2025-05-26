@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+// Function to create OpenAI client only when needed
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY environment variable is missing')
+  }
+  
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  })
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +22,19 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn('OpenAI API key not available, using fallback title generation')
+      const fallbackTitle = extractSimpleTitle(userMessage)
+      return NextResponse.json({ 
+        title: fallbackTitle,
+        warning: 'Título generado con método de respaldo'
+      })
+    }
+
+    // Create OpenAI client only when needed
+    const openai = getOpenAIClient()
 
     // Generate intelligent title using OpenAI
     const completion = await openai.chat.completions.create({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Mail, RefreshCw, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function CheckEmailPage() {
+function CheckEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
@@ -92,7 +92,7 @@ export default function CheckEmailPage() {
                 <ol className="text-sm text-charcoal/70 font-marcellus space-y-1 list-decimal list-inside">
                   <li>Revisa tu bandeja de entrada</li>
                   <li>Busca un email de NutriGuide</li>
-                  <li>Haz clic en el enlace "Verificar Email"</li>
+                  <li>Haz clic en el enlace &quot;Verificar Email&quot;</li>
                   <li>Serás redirigido para completar tu registro</li>
                 </ol>
               </div>
@@ -173,5 +173,19 @@ export default function CheckEmailPage() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function CheckEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-sand via-warm-sand/90 to-sage/20">
+        <div className="w-16 h-16 rounded-full bg-coral/10 flex items-center justify-center">
+          <Mail className="w-8 h-8 text-coral animate-pulse" />
+        </div>
+      </div>
+    }>
+      <CheckEmailContent />
+    </Suspense>
   );
 } 

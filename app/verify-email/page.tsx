@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -9,7 +9,7 @@ import { PulsingDots } from '../components/ui/loading-spinner';
 import { CheckCircle, XCircle, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired'>('loading');
@@ -204,5 +204,17 @@ export default function VerifyEmailPage() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-sand via-warm-sand/90 to-sage/20">
+        <PulsingDots color="coral" size="lg" />
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 } 

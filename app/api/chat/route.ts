@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // If chatId is provided, verify it belongs to the user
-    let currentChatId = chatId;
+    const currentChatId = chatId;
     if (chatId) {
       const { data: chat, error: chatError } = await supabase
         .from('chats')

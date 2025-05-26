@@ -145,10 +145,10 @@ export default function NutritionChatbot() {
                         code: ({ children }) => <code className="bg-black/10 px-1 py-0.5 rounded text-xs">{children}</code>,
                         ul: ({ children }) => <ul className="list-none my-2">{children}</ul>,
                         ol: ({ children }) => <ol className="list-none my-2">{children}</ol>,
-                        li: ({ children, index, ordered }) => (
+                        li: ({ children }) => (
                           <li className="text-sm leading-relaxed flex items-start gap-2 mb-1">
                             <span className="text-charcoal/60 font-medium min-w-[1.5rem]">
-                              {ordered ? `${(index || 0) + 1}.` : '•'}
+                              •
                             </span>
                             <span className="flex-1">{children}</span>
                           </li>

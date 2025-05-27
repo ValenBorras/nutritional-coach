@@ -42,8 +42,54 @@ async function testEmailVerification() {
   const testEmail = `test-${Date.now()}@example.com`;
   
   try {
+    // Test the actual registration endpoint
+    const response = await fetch('http://localhost:3000/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: testEmail,
+        password: 'testpassword123',
+        name: 'Test User',
+        role: 'patient',
+        height: 170,
+        weight: 70,
+        gender: 'male',
+        activityLevel: 'moderate',
+        goals: 'Test goals',
+        birthDate: '1990-01-01'
+      }),
+    });
+
+    if (response.ok) {
+      console.log('✅ Registration endpoint working');
+      console.log('✅ User should receive verification email');
+      
+      // Clean up test user
+      try {
+        const { data: users } = await supabase.auth.admin.listUsers();
+        const testUser = users.users.find(u => u.email === testEmail);
+        if (testUser) {
+          await supabase.auth.admin.deleteUser(testUser.id);
+          console.log('🧹 Test user cleaned up');
+        }
+      } catch (cleanupError) {
+        console.log('⚠️ Could not clean up test user:', cleanupError.message);
+      }
+    } else {
+      const errorData = await response.json();
+      console.log('⚠️ Registration endpoint error:', errorData.message);
+    }
+  } catch (error) {
+    console.log('⚠️ Could not test registration endpoint (server may not be running)');
+    console.log('   Start your dev server with: npm run dev');
+  }
+
+  // Fallback: Test with direct Supabase signup
+  try {
     const { data, error } = await supabase.auth.signUp({
-      email: testEmail,
+      email: testEmail + '.fallback',
       password: 'testpassword123',
       options: {
         data: {

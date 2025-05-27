@@ -1,6 +1,7 @@
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent } from "@/app/components/ui/card"
 import { Settings, Users, TrendingUp } from "lucide-react"
+import Link from "next/link"
 
 export default function NutritionistSection() {
   return (
@@ -54,9 +55,11 @@ export default function NutritionistSection() {
               </div>
             </div>
 
-            <Button className="bg-sage-green hover:bg-sage-green/90 text-mist-white rounded-full px-8 py-6">
-              Únete como Nutricionista
-            </Button>
+            <Link href="/register">
+              <Button className="bg-sage-green hover:bg-sage-green/90 text-mist-white rounded-full px-8 py-6">
+                Únete como Nutricionista
+              </Button>
+            </Link>
           </div>
 
           <div className="flex-1 relative">

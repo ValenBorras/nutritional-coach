@@ -1,4 +1,5 @@
 import { Button } from "@/app/components/ui/button"
+import Link from "next/link"
 
 export default function CTASection() {
   return (
@@ -13,15 +14,19 @@ export default function CTASection() {
             orientación personalizada y alineada con expertos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-coral hover:bg-coral/90 text-mist-white text-lg py-6 px-8 rounded-full">
-              Comienza Tu Prueba Gratuita
-            </Button>
-            <Button
-              variant="outline"
-              className="border-sage-green text-charcoal hover:bg-sage-green/10 text-lg py-6 px-8 rounded-full"
-            >
-              Agenda una Demo
-            </Button>
+            <Link href="/register">
+              <Button className="bg-coral hover:bg-coral/90 text-mist-white text-lg py-6 px-8 rounded-full">
+                Comienza Tu Prueba Gratuita
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button
+                variant="outline"
+                className="border-sage-green text-charcoal hover:bg-sage-green/10 text-lg py-6 px-8 rounded-full"
+              >
+                Agenda una Demo
+              </Button>
+            </Link>
           </div>
           <p className="text-sm text-charcoal/60 mt-6">No se requiere tarjeta de crédito. Prueba gratuita de 14 días.</p>
         </div>

@@ -1,5 +1,6 @@
 import { Button } from "@/app/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function HeroSection() {
   return (
@@ -15,15 +16,19 @@ export default function HeroSection() {
               Recibe orientación personalizada alineada con la filosofía de tu nutricionista y tu viaje único hacia la salud.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button className="bg-coral hover:bg-coral/90 text-mist-white text-lg py-6 px-8 rounded-full">
-                Comienza tu Viaje
-              </Button>
-              <Button
-                variant="outline"
-                className="border-sage-green text-charcoal hover:bg-sage-green/10 text-lg py-6 px-8 rounded-full"
-              >
-                Para Nutricionistas
-              </Button>
+              <Link href="/register">
+                <Button className="bg-coral hover:bg-coral/90 text-mist-white text-lg py-6 px-8 rounded-full">
+                  Comienza tu Viaje
+                </Button>
+              </Link>
+              <Link href="/#for-nutritionists">
+                <Button
+                  variant="outline"
+                  className="border-sage-green text-charcoal hover:bg-sage-green/10 text-lg py-6 px-8 rounded-full"
+                >
+                  Para Nutricionistas
+                </Button>
+              </Link>
             </div>
             <div className="mt-8 flex items-center gap-4">
               <div className="flex -space-x-4">

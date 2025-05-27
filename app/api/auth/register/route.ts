@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: false,
+      email_confirm: false, // User needs to confirm email
       user_metadata: {
         name,
         role
@@ -134,6 +134,22 @@ export async function POST(req: Request) {
     }
 
     console.log('Usuario Auth creado exitosamente:', authData.user.id);
+
+    // Send confirmation email manually
+    console.log('Enviando email de confirmación...');
+    const { error: emailError } = await adminSupabase.auth.admin.generateLink({
+      type: 'signup',
+      email: email,
+      password: password,
+    });
+
+    if (emailError) {
+      console.error('Error sending confirmation email:', emailError);
+      // Don't fail the registration, but log the error
+      console.log('⚠️ Email de confirmación no enviado, pero el usuario fue creado');
+    } else {
+      console.log('✅ Email de confirmación enviado exitosamente');
+    }
 
     // Preparar los datos del perfil según el rol
     const profileData = role === "patient" ? {

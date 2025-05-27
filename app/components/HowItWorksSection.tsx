@@ -1,5 +1,6 @@
 import { Button } from "@/app/components/ui/button"
 import { CheckCircle } from "lucide-react"
+import Link from "next/link"
 
 export default function HowItWorksSection() {
   const steps = [
@@ -70,9 +71,11 @@ export default function HowItWorksSection() {
                 </div>
               ))}
             </div>
-            <Button className="bg-coral hover:bg-coral/90 text-mist-white self-start rounded-full px-8 py-6">
-              Comienza Tu Viaje
-            </Button>
+            <Link href="/register">
+              <Button className="bg-coral hover:bg-coral/90 text-mist-white self-start rounded-full px-8 py-6">
+                Comienza Tu Viaje
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function FeaturesSection() {
     {
       icon: <Zap className="w-10 h-10 text-sage-green" />,
       title: "Simple e Intuitivo",
-      description: "Interfaz fácil de usar diseñada para mujeres que buscan resultados sin complicaciones.",
+      description: "Interfaz fácil de usar diseñada para personas que buscan resultados sin complicaciones.",
     },
     {
       icon: <UserCheck className="w-10 h-10 text-soft-rose" />,

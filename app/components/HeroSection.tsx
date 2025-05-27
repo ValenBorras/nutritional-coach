@@ -11,7 +11,7 @@ export default function HeroSection() {
               Tu <span className="text-coral">Nutricionista IA</span> Personal Que Se Adapta a Tus Necesidades
             </h1>
             <p className="text-lg md:text-xl text-charcoal/80 mb-8 leading-relaxed">
-              NutriGuide ofrece coaching nutricional con IA 24/7 diseñado específicamente para mujeres mayores de 40 años. 
+              NutriGuide ofrece coaching nutricional con IA 24/7 para personas que buscan cambiar su físico y alcanzar sus objetivos de alimentación. 
               Recibe orientación personalizada alineada con la filosofía de tu nutricionista y tu viaje único hacia la salud.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -38,7 +38,7 @@ export default function HeroSection() {
                 </div>
               </div>
               <p className="text-charcoal/80">
-                <span className="font-semibold">500+</span> mujeres ya mejorando su salud
+                <span className="font-semibold">500+</span> personas ya mejorando su salud
               </p>
             </div>
           </div>
@@ -54,7 +54,7 @@ export default function HeroSection() {
               >
                 <Image
                   src="/nutricionista.webp"
-                  alt="Mujer disfrutando comida saludable"
+                  alt="Persona disfrutando comida saludable"
                   width={600}
                   height={600}
                   className="object-cover w-full h-full"

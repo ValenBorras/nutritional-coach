@@ -12,10 +12,10 @@ export default function TestimonialsSection() {
     },
     {
       quote:
-        "Como madre ocupada de tres hijos, nunca tenía tiempo para enfocarme en mi nutrición. NutriGuide lo hace simple con consejos prácticos que se ajustan a mi caótica agenda. Me siento apoyada todos los días.",
-      name: "Sarah T.",
-      age: 38,
-      achievement: "Mejoró sus niveles de energía",
+        "Como padre ocupado que trabaja muchas horas, siempre descuidaba mi alimentación. NutriGuide me ayuda a mantener hábitos saludables con consejos prácticos que puedo seguir incluso en días caóticos. Es como tener un nutricionista personal.",
+      name: "Carlos R.",
+      age: 35,
+      achievement: "Aumentó masa muscular y energía",
     },
     {
       quote:
@@ -38,10 +38,10 @@ export default function TestimonialsSection() {
       <div className="container px-4 mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl md:text-4xl font-marcellus text-charcoal mb-4">
-            Historias de <span className="text-coral">Mujeres Como Tú</span>
+            Historias de <span className="text-coral">Personas Como Tú</span>
           </h2>
           <p className="text-lg text-charcoal/70">
-            Escucha a mujeres que han transformado su relación con la nutrición usando NutriGuide.
+            Escucha a personas que han transformado su relación con la nutrición usando NutriGuide.
           </p>
         </div>
 

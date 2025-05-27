@@ -9,7 +9,7 @@ export default function CTASection() {
             Comienza Tu Viaje Hacia una <span className="text-coral">Mejor Salud</span> Hoy
           </h2>
           <p className="text-lg text-charcoal/70 mb-8">
-            Únete a miles de mujeres que están transformando su relación con la nutrición a través de una
+            Únete a miles de personas que están transformando su relación con la nutrición a través de una
             orientación personalizada y alineada con expertos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

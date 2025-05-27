@@ -55,14 +55,14 @@ export default function HowItWorksSection() {
           </div>
 
           <div className="flex flex-col justify-center">
-            <h3 className="text-2xl font-marcellus text-charcoal mb-6">Por Qué las Mujeres Eligen NutriGuide</h3>
+            <h3 className="text-2xl font-marcellus text-charcoal mb-6">Por Qué Elegir NutriGuide</h3>
             <div className="space-y-4 mb-8">
               {[
-                "Orientación que entiende las necesidades nutricionales únicas de las mujeres",
-                "Apoyo que se adapta a vidas ocupadas y estresantes",
+                "Orientación que se adapta a tus necesidades nutricionales específicas",
+                "Apoyo que se ajusta a vidas ocupadas y horarios demandantes",
                 "Aliento emocional, no solo consejos clínicos",
                 "Nutrición simplificada sin información abrumadora",
-                "Soporte consistente entre citas con el nutricionista",
+                "Soporte consistente entre citas con tu nutricionista",
               ].map((benefit, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <CheckCircle className="w-6 h-6 text-sage-green flex-shrink-0 mt-0.5" />

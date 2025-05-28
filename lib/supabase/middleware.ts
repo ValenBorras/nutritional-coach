@@ -47,6 +47,33 @@ export async function updateSession(request: NextRequest) {
   const isAllowedRoute = allowedRoutes.some(route => currentPath.startsWith(route))
 
   if (user) {
+    // For OAuth users accessing protected routes, check if they have complete profile data
+    if (isProtectedRoute && user.app_metadata?.provider !== 'email') {
+      try {
+        // Use the correct origin for the API call
+        const origin = process.env.NODE_ENV === 'production' 
+          ? 'https://nutritional-coach.vercel.app' 
+          : request.nextUrl.origin;
+        
+        // Check if user exists in our database
+        const userResponse = await fetch(`${origin}/api/user?email=${user.email}`, {
+          headers: {
+            'Cookie': request.headers.get('cookie') || '',
+          },
+        });
+        
+        if (!userResponse.ok && userResponse.status === 404) {
+          // OAuth user doesn't have profile data, redirect to onboarding
+          console.log('🔄 OAuth user missing profile data, redirecting to onboarding:', user.email);
+          return NextResponse.redirect(new URL('/onboarding', request.url));
+        }
+      } catch (error) {
+        console.error('Error checking user profile:', error);
+        // On error, redirect to onboarding to be safe
+        return NextResponse.redirect(new URL('/onboarding', request.url));
+      }
+    }
+
     // User is authenticated, check email verification for protected routes
     if (isProtectedRoute && !user.email_confirmed_at) {
       // Skip email verification check for OAuth users on allowed routes

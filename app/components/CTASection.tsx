@@ -14,12 +14,12 @@ export default function CTASection() {
             orientación personalizada y alineada con expertos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register">
+            <Link href="/login">
               <Button className="bg-coral hover:bg-coral/90 text-mist-white text-lg py-6 px-8 rounded-full">
                 Comienza Tu Prueba Gratuita
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/login">
               <Button
                 variant="outline"
                 className="border-sage-green text-charcoal hover:bg-sage-green/10 text-lg py-6 px-8 rounded-full"

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test:email": "node scripts/test-email-verification.js",
-    "test:real-email": "node scripts/test-real-email.js"
+    "test:real-email": "node scripts/test-real-email.js",
+    "debug:email": "node scripts/debug-email-config.js"
   },
   "dependencies": {
     "@next/font": "^14.2.15",

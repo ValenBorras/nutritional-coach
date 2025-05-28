@@ -8,6 +8,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { PulsingDots } from '../ui/loading-spinner';
+import { GoogleLoginButton } from './google-login-button';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -190,6 +191,19 @@ export function AuthForm({ mode }: AuthFormProps) {
               mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'
             )}
           </Button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500 font-medium">O</span>
+            </div>
+          </div>
+
+          {/* Google Login Button */}
+          <GoogleLoginButton disabled={showLoading} />
 
           <div className="text-sm text-center font-marcellus text-charcoal/70">
             {mode === 'login' ? (

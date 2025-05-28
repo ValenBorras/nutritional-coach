@@ -45,17 +45,10 @@ export function Navbar() {
             ))}
             <div className="flex items-center space-x-4">
               <Button
-                variant="ghost"
-                asChild
-                className="text-mist-white hover:text-white hover:bg-charcoal/80 font-marcellus"
-              >
-                <Link href="/login">Iniciar Sesión</Link>
-              </Button>
-              <Button
                 asChild
                 className="bg-coral hover:bg-coral/90 text-white font-marcellus"
               >
-                <Link href="/register">Comenzar</Link>
+                <Link href="/login">Comenzar</Link>
               </Button>
             </div>
           </div>
@@ -101,19 +94,10 @@ export function Navbar() {
             ))}
             <div className="flex flex-col space-y-4 pt-4">
               <Button
-                variant="ghost"
-                asChild
-                className="text-mist-white hover:text-white hover:bg-charcoal/80 font-marcellus w-full"
-              >
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                  Iniciar Sesión
-                </Link>
-              </Button>
-              <Button
                 asChild
                 className="bg-coral hover:bg-coral/90 text-white font-marcellus w-full"
               >
-                <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                   Comenzar
                 </Link>
               </Button>

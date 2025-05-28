@@ -16,7 +16,7 @@ export default function HeroSection() {
               Recibe orientación personalizada alineada con la filosofía de tu nutricionista y tu viaje único hacia la salud.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/register">
+              <Link href="/login">
                 <Button className="bg-coral hover:bg-coral/90 text-mist-white text-lg py-6 px-8 rounded-full">
                   Comienza tu Viaje
                 </Button>

@@ -8,19 +8,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Textarea } from "@/app/components/ui/textarea";
 import { DateSlider } from "@/app/components/ui/date-slider";
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 
 interface PatientFormProps {
-  onSubmit: (data: any) => Promise<void>;
-  isLoading: boolean;
+  onSubmit?: (data: any) => Promise<void>;
+  isLoading?: boolean;
+  mode?: 'register' | 'oauth-onboarding';
+  authUser?: any;
 }
 
-export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
+export function PatientForm({ onSubmit, isLoading = false, mode = 'register', authUser }: PatientFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [nutritionistKey, setNutritionistKey] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     try {
       console.log('Iniciando envío del formulario...');
@@ -41,31 +49,76 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
         }
       }
 
-      const data = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
-        name: formData.get('name') as string,
-        height: parseFloat(formData.get('height') as string),
-        weight: parseFloat(formData.get('weight') as string),
-        birthDate: birthdate,
-        gender: formData.get('gender') as string,
-        activityLevel: formData.get('activityLevel') as string,
-        goals: formData.get('goals') as string,
-        allergies: (formData.get('allergies') as string)?.split(',').map(a => a.trim()).filter(Boolean) || [],
-        dietaryRestrictions: (formData.get('dietaryRestrictions') as string)?.split(',').map(r => r.trim()).filter(Boolean) || [],
-        medicalConditions: (formData.get('medicalConditions') as string)?.split(',').map(c => c.trim()).filter(Boolean) || [],
-        nutritionistKey: nutritionistKey || null,
-        role: 'patient'
-      };
+      let data;
 
-      console.log('Datos del formulario:', data);
-      await onSubmit(data);
+      if (mode === 'oauth-onboarding') {
+        // OAuth onboarding mode - use auth user data
+        data = {
+          id: authUser?.id,
+          email: authUser?.email,
+          name: formData.get('name') as string || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name,
+          height: parseFloat(formData.get('height') as string),
+          weight: parseFloat(formData.get('weight') as string),
+          birthDate: birthdate,
+          gender: formData.get('gender') as string,
+          activityLevel: formData.get('activityLevel') as string,
+          goals: formData.get('goals') as string,
+          allergies: (formData.get('allergies') as string)?.split(',').map(a => a.trim()).filter(Boolean) || [],
+          dietaryRestrictions: (formData.get('dietaryRestrictions') as string)?.split(',').map(r => r.trim()).filter(Boolean) || [],
+          medicalConditions: (formData.get('medicalConditions') as string)?.split(',').map(c => c.trim()).filter(Boolean) || [],
+          nutritionistKey: nutritionistKey || null,
+          role: 'patient'
+        };
+
+        // Call OAuth user creation API
+        const response = await fetch('/api/user/create-oauth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al crear usuario');
+        }
+
+        // Refresh user data and redirect to dashboard
+        await refreshUser();
+        router.push('/dashboard');
+      } else {
+        // Regular registration mode
+        data = {
+          email: formData.get('email') as string,
+          password: formData.get('password') as string,
+          name: formData.get('name') as string,
+          height: parseFloat(formData.get('height') as string),
+          weight: parseFloat(formData.get('weight') as string),
+          birthDate: birthdate,
+          gender: formData.get('gender') as string,
+          activityLevel: formData.get('activityLevel') as string,
+          goals: formData.get('goals') as string,
+          allergies: (formData.get('allergies') as string)?.split(',').map(a => a.trim()).filter(Boolean) || [],
+          dietaryRestrictions: (formData.get('dietaryRestrictions') as string)?.split(',').map(r => r.trim()).filter(Boolean) || [],
+          medicalConditions: (formData.get('medicalConditions') as string)?.split(',').map(c => c.trim()).filter(Boolean) || [],
+          nutritionistKey: nutritionistKey || null,
+          role: 'patient'
+        };
+
+        if (onSubmit) {
+          await onSubmit(data);
+        }
+      }
+
       console.log('Registro completado con éxito');
     } catch (err) {
       console.error('Error en el formulario:', err);
       setError(err instanceof Error ? err.message : 'Ocurrió un error durante el registro');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const showLoading = loading || isLoading;
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -80,24 +133,43 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre Completo</Label>
-              <Input id="name" name="name" required />
+              <Input 
+                id="name" 
+                name="name" 
+                defaultValue={mode === 'oauth-onboarding' ? 
+                  (authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || '') : 
+                  ''
+                }
+                required 
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" required />
-            </div>
+            {mode !== 'oauth-onboarding' && (
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required />
+              </div>
+            )}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input id="password" name="password" type="password" required />
+          {mode !== 'oauth-onboarding' && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input id="password" name="password" type="password" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">Fecha de Nacimiento</Label>
+                <DateSlider name="birthDate" required />
+              </div>
             </div>
+          )}
+
+          {mode === 'oauth-onboarding' && (
             <div className="space-y-2">
               <Label htmlFor="birthDate">Fecha de Nacimiento</Label>
               <DateSlider name="birthDate" required />
             </div>
-          </div>
+          )}
 
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -193,9 +265,9 @@ export function PatientForm({ onSubmit, isLoading }: PatientFormProps) {
           <Button 
             type="submit" 
             className="w-full bg-coral hover:bg-coral/90" 
-            disabled={isLoading}
+            disabled={showLoading}
           >
-            {isLoading ? 'Registrando...' : 'Registrarse'}
+            {showLoading ? 'Registrando...' : 'Registrarse'}
           </Button>
         </CardFooter>
       </form>

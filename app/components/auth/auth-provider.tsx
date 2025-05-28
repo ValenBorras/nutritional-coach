@@ -20,6 +20,7 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<any>;
   signUpWithEmail: (email: string, password: string, metadata?: any) => Promise<any>;
+  signInWithGoogle: () => Promise<any>;
   refreshUser: () => Promise<void>;
   supabase: any;
 }
@@ -105,8 +106,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loadingRef.current = true;
       console.log('📊 Loading user data for:', authUser.email);
 
-      // Check if email is verified
-      if (!authUser.email_confirmed_at) {
+      // Check if email is verified (skip for OAuth users)
+      const isOAuthUser = authUser.app_metadata?.provider !== 'email';
+      if (!authUser.email_confirmed_at && !isOAuthUser) {
         console.log('❌ Email not verified for user:', authUser.email);
         setAuthState({
           user: null,
@@ -120,6 +122,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const response = await fetch(`/api/user?email=${authUser.email}`);
       if (!response.ok) {
+        // If user doesn't exist and this is an OAuth user, they need onboarding
+        if (response.status === 404 && isOAuthUser) {
+          console.log('👤 OAuth user needs onboarding:', authUser.email);
+          
+          // Only redirect if not already on onboarding page
+          if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/onboarding')) {
+            console.log('🔄 Redirecting to onboarding...');
+            window.location.href = '/onboarding';
+            return;
+          }
+          
+          // If already on onboarding page, just set the state without redirect
+          setAuthState({
+            user: null,
+            profile: null,
+            authUser,
+            loading: false,
+            error: null,
+          });
+          return;
+        }
+        
         const errorData = await response.json();
         throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
       }
@@ -227,6 +251,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function signInWithGoogle() {
+    try {
+      console.log('🔐 Signing in with Google...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/onboarding`,
+        },
+      });
+
+      if (error) {
+        console.error('❌ Google sign in error:', error);
+      } else {
+        console.log('✅ Google sign in initiated');
+      }
+
+      return { data, error };
+    } catch (error) {
+      console.error('❌ Unexpected Google sign in error:', error);
+      return {
+        data: null,
+        error: {
+          message: error instanceof Error ? error.message : 'Unexpected error during Google sign in',
+        },
+      };
+    }
+  }
+
   async function refreshUser() {
     if (authState.authUser) {
       console.log('🔄 Refreshing user data...');
@@ -239,6 +291,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     signInWithEmail,
     signUpWithEmail,
+    signInWithGoogle,
     refreshUser,
     supabase,
   };

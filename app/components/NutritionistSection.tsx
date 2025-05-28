@@ -55,7 +55,7 @@ export default function NutritionistSection() {
               </div>
             </div>
 
-            <Link href="/register">
+            <Link href="/login">
               <Button className="bg-sage-green hover:bg-sage-green/90 text-mist-white rounded-full px-8 py-6">
                 Únete como Nutricionista
               </Button>

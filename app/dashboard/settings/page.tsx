@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { UserAvatar } from "@/app/components/ui/user-avatar";
 import DashboardLayout from "@/app/components/dashboard-layout";
 import ConnectNutritionist from "@/app/components/connect-nutritionist";
+import PushNotificationsManager from "@/app/components/push-notifications-manager";
 import { useAuth } from "@/app/components/auth/auth-provider";
 import { User, Camera, Target, Heart, AlertCircle, Plus, X, Upload } from "lucide-react";
 import { motion } from "framer-motion";
@@ -693,6 +694,9 @@ export default function SettingsPage() {
           {!isNutritionist && (
             <ConnectNutritionist />
           )}
+
+          {/* Push Notifications */}
+          <PushNotificationsManager />
 
           {/* Save Button */}
           <div className="flex justify-end pt-6">

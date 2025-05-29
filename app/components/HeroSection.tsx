@@ -68,23 +68,6 @@ export default function HeroSection() {
                 />
               </div>
             </div>
-            <div
-              className="absolute -bottom-4 -right-4 md:bottom-12 md:-right-8 bg-warm-sand border border-soft-rose p-4 rounded-lg shadow-md max-w-xs animate-float"
-              style={{ animationDelay: "1.5s" }}
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-soft-rose flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs font-semibold">AI</span>
-                </div>
-                <div>
-                  <p className="text-sm text-charcoal/80">
-                    "Noté que has tenido problemas para dormir. Intenta tomar una taza de té de manzanilla antes de acostarte y
-                    evita las pantallas durante una hora antes de dormir."
-                  </p>
-                  <p className="text-xs text-charcoal/60 mt-1">Basado en las recomendaciones de la Dra. Sarah</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

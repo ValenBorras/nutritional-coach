@@ -48,6 +48,8 @@ export async function updateSession(request: NextRequest) {
 
   if (user) {
     // For OAuth users accessing protected routes, check if they have complete profile data
+    // TEMPORARILY DISABLED: This was causing fetch errors in production
+    /*
     if (isProtectedRoute && user.app_metadata?.provider !== 'email') {
       try {
         // Use the correct origin for the API call
@@ -79,6 +81,7 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(new URL('/onboarding', request.url));
       }
     }
+    */
 
     // User is authenticated, check email verification for protected routes
     if (isProtectedRoute && !user.email_confirmed_at) {

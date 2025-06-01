@@ -15,7 +15,7 @@ interface PushNotificationState {
 export function usePushNotifications() {
   const { user } = useAuth()
   const [state, setState] = useState<PushNotificationState>({
-    permission: 'default',
+    permission: 'default' as NotificationPermission,
     isSupported: false,
     isSubscribed: false,
     subscription: null,

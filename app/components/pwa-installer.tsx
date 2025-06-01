@@ -55,7 +55,7 @@ async function registerServiceWorkerRobust() {
         console.log('⏳ Waiting for existing SW to be ready...')
         const registration = await Promise.race([
           navigator.serviceWorker.ready,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+          new Promise<ServiceWorkerRegistration>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
         ])
         console.log('✅ Existing SW is ready:', registration.scope)
         return registration
@@ -81,7 +81,7 @@ async function registerServiceWorkerRobust() {
     // Wait for the service worker to be ready with timeout
     console.log('⏳ Waiting for SW to be ready...')
     const readyPromise = navigator.serviceWorker.ready
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise<ServiceWorkerRegistration>((_, reject) => 
       setTimeout(() => reject(new Error('SW ready timeout after 15 seconds')), 15000)
     )
 

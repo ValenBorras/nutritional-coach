@@ -290,7 +290,7 @@ export default function PushNotificationsManager({ className }: PushNotification
               id="notifications-toggle"
               checked={isSubscribed}
               onCheckedChange={handleToggleNotifications}
-              disabled={loading || permission === 'denied'}
+              disabled={loading || (permission as NotificationPermission) === 'denied'}
             />
           </div>
         )}

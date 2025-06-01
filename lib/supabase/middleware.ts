@@ -51,9 +51,15 @@ export async function updateSession(request: NextRequest) {
     if (isProtectedRoute && user.app_metadata?.provider !== 'email') {
       try {
         // Use the correct origin for the API call
-        const origin = process.env.NEXT_PUBLIC_APP_URL || 
-          process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
-          request.nextUrl.origin;
+        let origin = request.nextUrl.origin;
+        
+        // In production, prefer the environment variable if set
+        if (process.env.NODE_ENV === 'production') {
+          origin = process.env.NEXT_PUBLIC_APP_URL || 
+            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : origin);
+        }
+        
+        console.log('🔍 Middleware API call to:', `${origin}/api/user?email=${user.email}`);
         
         // Check if user exists in our database
         const userResponse = await fetch(`${origin}/api/user?email=${user.email}`, {

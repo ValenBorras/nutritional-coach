@@ -48,40 +48,13 @@ export async function updateSession(request: NextRequest) {
 
   if (user) {
     // For OAuth users accessing protected routes, check if they have complete profile data
-    // TEMPORARILY DISABLED: This was causing fetch errors in production
-    /*
+    // SIMPLIFIED: Instead of making API calls from middleware (which can fail in production),
+    // we'll let the dashboard handle OAuth user verification client-side
     if (isProtectedRoute && user.app_metadata?.provider !== 'email') {
-      try {
-        // Use the correct origin for the API call
-        let origin = request.nextUrl.origin;
-        
-        // In production, prefer the environment variable if set
-        if (process.env.NODE_ENV === 'production') {
-          origin = process.env.NEXT_PUBLIC_APP_URL || 
-            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : origin);
-        }
-        
-        console.log('🔍 Middleware API call to:', `${origin}/api/user?email=${user.email}`);
-        
-        // Check if user exists in our database
-        const userResponse = await fetch(`${origin}/api/user?email=${user.email}`, {
-          headers: {
-            'Cookie': request.headers.get('cookie') || '',
-          },
-        });
-        
-        if (!userResponse.ok && userResponse.status === 404) {
-          // OAuth user doesn't have profile data, redirect to onboarding
-          console.log('🔄 OAuth user missing profile data, redirecting to onboarding:', user.email);
-          return NextResponse.redirect(new URL('/onboarding', request.url));
-        }
-      } catch (error) {
-        console.error('Error checking user profile:', error);
-        // On error, redirect to onboarding to be safe
-        return NextResponse.redirect(new URL('/onboarding', request.url));
-      }
+      // For OAuth users, we'll allow access to dashboard and let the client-side
+      // handle the profile completion check to avoid fetch issues in middleware
+      console.log('🔍 OAuth user accessing protected route, allowing access:', user.email);
     }
-    */
 
     // User is authenticated, check email verification for protected routes
     if (isProtectedRoute && !user.email_confirmed_at) {

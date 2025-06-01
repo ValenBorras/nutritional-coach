@@ -51,6 +51,9 @@ VAPID_EMAIL=tu-email@ejemplo.com
 
 # Variable pública para el frontend (debe empezar con NEXT_PUBLIC_)
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=BPdK3I5-SWo15agKaIqHvNHr1mPy1DZ6XPzCmpktM1N7JYB4kjUDcV3-Xd3mGtxRf6LKR81cGce-RIYEMQctHxc
+
+# 🆕 URL de la aplicación (IMPORTANTE para evitar redirects a localhost)
+NEXT_PUBLIC_APP_URL=https://tu-dominio-de-produccion.vercel.app
 ```
 
 **⚠️ Seguridad:**
@@ -73,7 +76,15 @@ VAPID_EMAIL=tu-email@ejemplo.com
 
 # Variable pública para el frontend (debe empezar con NEXT_PUBLIC_)
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=BPdK3I5-SWo15agKaIqHvNHr1mPy1DZ6XPzCmpktM1N7JYB4kjUDcV3-Xd3mGtxRf6LKR81cGce-RIYEMQctHxc
+
+# 🆕 URL de la aplicación (IMPORTANTE para evitar redirects a localhost)
+NEXT_PUBLIC_APP_URL=https://tu-dominio-de-produccion.vercel.app
 ```
+
+**⚠️ IMPORTANTE - Configuración de URL:**
+- Reemplaza `https://tu-dominio-de-produccion.vercel.app` con tu URL real de producción
+- Esta variable evita que la app redirija a localhost después del login
+- Es esencial para el correcto funcionamiento en producción
 
 ### 2. Crear la tabla en Supabase
 

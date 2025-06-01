@@ -51,9 +51,9 @@ export async function updateSession(request: NextRequest) {
     if (isProtectedRoute && user.app_metadata?.provider !== 'email') {
       try {
         // Use the correct origin for the API call
-        const origin = process.env.NODE_ENV === 'production' 
-          ? 'https://nutritional-coach.vercel.app' 
-          : request.nextUrl.origin;
+        const origin = process.env.NEXT_PUBLIC_APP_URL || 
+          process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+          request.nextUrl.origin;
         
         // Check if user exists in our database
         const userResponse = await fetch(`${origin}/api/user?email=${user.email}`, {

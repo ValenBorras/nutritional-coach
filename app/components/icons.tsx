@@ -1,14 +1,8 @@
-import {
-  Loader2,
-  LucideProps,
-  Apple,
-  Mail,
-  Github,
-} from "lucide-react"
+import { Loader2, LucideProps, Apple, Mail, Github } from "lucide-react";
 
-import type { LucideIcon } from "lucide-react"
+import type { LucideIcon } from "lucide-react";
 
-export type Icon = LucideIcon
+export type Icon = LucideIcon;
 
 export const Icons = {
   spinner: Loader2,
@@ -32,4 +26,4 @@ export const Icons = {
       ></path>
     </svg>
   ),
-} 
+};

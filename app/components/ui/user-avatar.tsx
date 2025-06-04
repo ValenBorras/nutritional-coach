@@ -1,38 +1,42 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/app/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface UserAvatarProps {
   /** URL de la imagen del usuario */
-  src?: string | null
+  src?: string | null;
   /** Nombre del usuario para mostrar iniciales como fallback */
-  name?: string | null
+  name?: string | null;
   /** Texto alternativo para la imagen */
-  alt?: string
+  alt?: string;
   /** Clases CSS adicionales */
-  className?: string
+  className?: string;
   /** Tamaño del avatar */
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: "sm" | "md" | "lg" | "xl";
   /** Mostrar un indicador de estado */
-  showStatus?: boolean
+  showStatus?: boolean;
   /** Estado del usuario (online, offline, etc.) */
-  status?: "online" | "offline" | "away"
+  status?: "online" | "offline" | "away";
 }
 
 const sizeClasses = {
   sm: "size-8",
-  md: "size-10", 
+  md: "size-10",
   lg: "size-16",
-  xl: "size-20"
-}
+  xl: "size-20",
+};
 
 const statusClasses = {
   online: "bg-green-500",
-  offline: "bg-gray-400", 
-  away: "bg-yellow-500"
-}
+  offline: "bg-gray-400",
+  away: "bg-yellow-500",
+};
 
 export function UserAvatar({
   src,
@@ -45,26 +49,25 @@ export function UserAvatar({
   ...props
 }: UserAvatarProps) {
   const getInitials = (fullName?: string | null) => {
-    if (!fullName) return "U"
-    
-    const parts = fullName.trim().split(/\s+/)
+    if (!fullName) return "U";
+
+    const parts = fullName.trim().split(/\s+/);
     if (parts.length === 1) {
-      return parts[0].charAt(0).toUpperCase()
+      return parts[0].charAt(0).toUpperCase();
     }
-    
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
-  }
+
+    return (
+      parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+  };
 
   return (
     <div className="relative inline-block">
-      <Avatar
-        className={cn(sizeClasses[size], className)}
-        {...props}
-      >
+      <Avatar className={cn(sizeClasses[size], className)} {...props}>
         {src && (
           <AvatarImage
             src={src}
-            alt={alt || `${name || 'Usuario'}'s avatar`}
+            alt={alt || `${name || "Usuario"}'s avatar`}
             className="object-cover"
           />
         )}
@@ -72,16 +75,16 @@ export function UserAvatar({
           {getInitials(name)}
         </AvatarFallback>
       </Avatar>
-      
+
       {showStatus && (
-        <div 
+        <div
           className={cn(
             "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
-            statusClasses[status]
+            statusClasses[status],
           )}
           aria-label={`Status: ${status}`}
         />
       )}
     </div>
-  )
-} 
+  );
+}

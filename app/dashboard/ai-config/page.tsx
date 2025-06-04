@@ -6,14 +6,17 @@ export default function AIConfigPage() {
     <DashboardLayout>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-charcoal mb-2">Configuración del Asistente IA</h1>
+          <h1 className="text-3xl font-bold text-charcoal mb-2">
+            Configuración del Asistente IA
+          </h1>
           <p className="text-charcoal/70">
-            Personaliza la personalidad y las reglas de tu asistente de inteligencia artificial
+            Personaliza la personalidad y las reglas de tu asistente de
+            inteligencia artificial
           </p>
         </div>
-        
+
         <AIRulesConfig />
       </div>
     </DashboardLayout>
   );
-} 
+}

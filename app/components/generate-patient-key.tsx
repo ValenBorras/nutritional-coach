@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Input } from '@/app/components/ui/input';
-import { Copy, Key, Plus, Check } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import { Input } from "@/app/components/ui/input";
+import { Copy, Key, Plus, Check } from "lucide-react";
 
 export default function GeneratePatientKey() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -15,25 +21,25 @@ export default function GeneratePatientKey() {
   const generateKey = async () => {
     setIsGenerating(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('/api/nutritionist/generate-patient-key', {
-        method: 'POST',
+      const response = await fetch("/api/nutritionist/generate-patient-key", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al generar la clave');
+        throw new Error(errorData.message || "Error al generar la clave");
       }
 
       const data = await response.json();
       setGeneratedKey(data.key);
     } catch (err) {
-      console.error('Error generating key:', err);
-      setError(err instanceof Error ? err.message : 'Error inesperado');
+      console.error("Error generating key:", err);
+      setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
       setIsGenerating(false);
     }
@@ -41,13 +47,13 @@ export default function GeneratePatientKey() {
 
   const copyToClipboard = async () => {
     if (!generatedKey) return;
-    
+
     try {
       await navigator.clipboard.writeText(generatedKey);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Error copying to clipboard:', err);
+      console.error("Error copying to clipboard:", err);
     }
   };
 
@@ -59,7 +65,8 @@ export default function GeneratePatientKey() {
           Generar Clave para Nuevo Paciente
         </CardTitle>
         <CardDescription>
-          Crea una clave única para que un nuevo paciente pueda registrarse y conectarse contigo
+          Crea una clave única para que un nuevo paciente pueda registrarse y
+          conectarse contigo
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -70,13 +77,13 @@ export default function GeneratePatientKey() {
         )}
 
         {!generatedKey ? (
-          <Button 
+          <Button
             onClick={generateKey}
             disabled={isGenerating}
             className="w-full bg-coral hover:bg-coral/90 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {isGenerating ? 'Generando...' : 'Generar Nueva Clave'}
+            {isGenerating ? "Generando..." : "Generar Nueva Clave"}
           </Button>
         ) : (
           <div className="space-y-3">
@@ -90,6 +97,7 @@ export default function GeneratePatientKey() {
                   readOnly
                   className="font-mono text-center text-lg bg-sage-green/10 border-sage-green/30"
                 />
+
                 <Button
                   variant="outline"
                   size="icon"
@@ -106,7 +114,9 @@ export default function GeneratePatientKey() {
             </div>
 
             <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800">
-              <p className="font-medium mb-1">📱 Comparte esta clave con tu paciente:</p>
+              <p className="font-medium mb-1">
+                📱 Comparte esta clave con tu paciente:
+              </p>
               <ul className="text-xs space-y-1">
                 <li>• La clave es de un solo uso</li>
                 <li>• El paciente la necesita para registrarse</li>
@@ -129,4 +139,4 @@ export default function GeneratePatientKey() {
       </CardContent>
     </Card>
   );
-} 
+}

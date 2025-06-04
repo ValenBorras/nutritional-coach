@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { Label } from "./label";
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown } from "lucide-react";
 
 interface DateSliderProps {
   name: string;
@@ -25,13 +25,16 @@ function Dropdown({ value, options, onChange, className }: DropdownProps) {
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSelect = (selectedValue: number) => {
@@ -39,7 +42,7 @@ function Dropdown({ value, options, onChange, className }: DropdownProps) {
     setIsOpen(false);
   };
 
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = options.find((opt) => opt.value === value);
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
@@ -49,13 +52,13 @@ function Dropdown({ value, options, onChange, className }: DropdownProps) {
         className="w-full flex items-center justify-between px-2 py-1.5 text-sm bg-warm-sand-50 border border-warm-sand-200 rounded-md focus:outline-none focus:ring-1 focus:ring-coral/60 focus:border-coral/60 transition-colors"
       >
         <span className="text-gray-700">{selectedOption?.label || value}</span>
-        <ChevronDown 
+        <ChevronDown
           className={`h-4 w-4 text-gray-400 transform transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`} 
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
-      
+
       {isOpen && (
         <div className="absolute z-50 mt-1 w-full bg-stone-50 border border-gray-200 rounded-md shadow-lg max-h-48 overflow-auto">
           <div className="py-1">
@@ -66,9 +69,10 @@ function Dropdown({ value, options, onChange, className }: DropdownProps) {
                 onClick={() => handleSelect(option.value)}
                 className={`
                   w-full text-left px-2 py-1.5 text-sm hover:bg-coral hover:text-white transition-colors duration-150
-                  ${option.value === value 
-                    ? 'bg-coral text-white font-medium' 
-                    : 'text-gray-700'
+                  ${
+                    option.value === value
+                      ? "bg-coral text-white font-medium"
+                      : "text-gray-700"
                   }
                 `}
               >
@@ -82,7 +86,12 @@ function Dropdown({ value, options, onChange, className }: DropdownProps) {
   );
 }
 
-export function DateSlider({ name, value, onChange, required }: DateSliderProps) {
+export function DateSlider({
+  name,
+  value,
+  onChange,
+  required,
+}: DateSliderProps) {
   const [day, setDay] = useState(1);
   const [month, setMonth] = useState(1);
   const [year, setYear] = useState(2000);
@@ -101,13 +110,13 @@ export function DateSlider({ name, value, onChange, required }: DateSliderProps)
 
   // Update parent when values change
   useEffect(() => {
-    const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    const dateString = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
     onChange?.(dateString);
   }, [day, month, year, onChange]);
 
   // Get days in current month
   const daysInMonth = new Date(year, month, 0).getDate();
-  
+
   // Adjust day if it exceeds days in selected month
   useEffect(() => {
     if (day > daysInMonth) {
@@ -120,54 +129,52 @@ export function DateSlider({ name, value, onChange, required }: DateSliderProps)
   const maxYear = currentYear;
 
   const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
   ];
 
   // Generate options for dropdowns
   const dayOptions = Array.from({ length: daysInMonth }, (_, i) => ({
     value: i + 1,
-    label: (i + 1).toString()
+    label: (i + 1).toString(),
   }));
 
   const monthOptions = monthNames.map((name, index) => ({
     value: index + 1,
-    label: name
+    label: name,
   }));
 
   const yearOptions = Array.from({ length: maxYear - minYear + 1 }, (_, i) => ({
     value: maxYear - i, // Start from current year and go backwards
-    label: (maxYear - i).toString()
+    label: (maxYear - i).toString(),
   }));
 
   return (
     <div className="space-y-2">
-      <input 
-        type="hidden" 
-        name={name} 
-        value={`${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`}
+      <input
+        type="hidden"
+        name={name}
+        value={`${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`}
         required={required}
       />
-      
+
       <div className="grid grid-cols-3 gap-2">
-        <Dropdown
-          value={day}
-          options={dayOptions}
-          onChange={setDay}
-        />
-        
-        <Dropdown
-          value={month}
-          options={monthOptions}
-          onChange={setMonth}
-        />
-        
-        <Dropdown
-          value={year}
-          options={yearOptions}
-          onChange={setYear}
-        />
+        <Dropdown value={day} options={dayOptions} onChange={setDay} />
+
+        <Dropdown value={month} options={monthOptions} onChange={setMonth} />
+
+        <Dropdown value={year} options={yearOptions} onChange={setYear} />
       </div>
     </div>
   );
-} 
+}

@@ -1,22 +1,35 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
-import { PulsingDots } from '../ui/loading-spinner';
-import { GoogleLoginButton } from './google-login-button';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { PulsingDots } from "../ui/loading-spinner";
+import { GoogleLoginButton } from "./google-login-button";
 
 interface AuthFormProps {
-  mode: 'login' | 'register';
+  mode: "login" | "register";
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
-  const { signInWithEmail, loading: authLoading, error: authError, user, authUser } = useAuth();
+  const {
+    signInWithEmail,
+    loading: authLoading,
+    error: authError,
+    user,
+    authUser,
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,11 +46,13 @@ export function AuthForm({ mode }: AuthFormProps) {
     if (authUser && !authLoading) {
       if (user) {
         // User data loaded successfully, redirect to dashboard
-        router.push('/dashboard');
+        router.push("/dashboard");
         router.refresh();
       } else if (!authError) {
         // Auth user exists but no user data - this indicates a data inconsistency
-        setError('Account data incomplete. Please contact support or try registering again.');
+        setError(
+          "Account data incomplete. Please contact support or try registering again.",
+        );
         setIsLoading(false);
       }
     }
@@ -49,21 +64,21 @@ export function AuthForm({ mode }: AuthFormProps) {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const name = formData.get("name") as string;
 
     try {
-      if (mode === 'register') {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, name, role: 'patient' }),
+      if (mode === "register") {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, name, role: "patient" }),
         });
 
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.message || 'Error al registrar usuario');
+          throw new Error(data.message || "Error al registrar usuario");
         }
 
         // After successful registration, redirect to check email page
@@ -79,7 +94,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         // Don't redirect here - let the useEffect handle it after user data loads
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocurrió un error');
+      setError(err instanceof Error ? err.message : "Ocurrió un error");
       setIsLoading(false);
     }
   };
@@ -91,20 +106,22 @@ export function AuthForm({ mode }: AuthFormProps) {
     <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
       <CardHeader className="pb-8">
         <CardTitle className="text-3xl font-marcellus tracking-wide text-center text-charcoal">
-          {mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
+          {mode === "login" ? "Iniciar Sesión" : "Registrarse"}
         </CardTitle>
         <CardDescription className="text-center font-marcellus text-charcoal/70">
-          {mode === 'login'
-            ? 'Ingresa tus credenciales para acceder a tu cuenta'
-            : 'Crea una cuenta para comenzar tu viaje de nutrición'}
+          {mode === "login"
+            ? "Ingresa tus credenciales para acceder a tu cuenta"
+            : "Crea una cuenta para comenzar tu viaje de nutrición"}
         </CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6">
-          {mode === 'register' && (
+          {mode === "register" && (
             <div className="space-y-2">
-              <Label htmlFor="name" className="font-marcellus text-charcoal">Nombre</Label>
+              <Label htmlFor="name" className="font-marcellus text-charcoal">
+                Nombre
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -117,7 +134,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="font-marcellus text-charcoal">Email</Label>
+            <Label htmlFor="email" className="font-marcellus text-charcoal">
+              Email
+            </Label>
             <Input
               id="email"
               name="email"
@@ -129,7 +148,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="font-marcellus text-charcoal">Contraseña</Label>
+            <Label htmlFor="password" className="font-marcellus text-charcoal">
+              Contraseña
+            </Label>
             <Input
               id="password"
               name="password"
@@ -144,27 +165,31 @@ export function AuthForm({ mode }: AuthFormProps) {
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="text-sm text-red-600 font-marcellus">
                 {error}
-                {error.includes('User data not found') && (
+                {error.includes("User data not found") && (
                   <div className="mt-2">
                     <Button
                       type="button"
                       variant="link"
                       className="p-0 h-auto text-xs text-red-600 underline"
-                      onClick={() => router.push('/register')}
+                      onClick={() => router.push("/register")}
                     >
                       Try registering again
                     </Button>
                   </div>
                 )}
-                {error.includes('Email not verified') && (
+                {error.includes("Email not verified") && (
                   <div className="mt-2 space-y-2">
                     <Button
                       type="button"
                       variant="link"
                       className="p-0 h-auto text-xs text-red-600 underline block"
                       onClick={() => {
-                        const email = (document.getElementById('email') as HTMLInputElement)?.value;
-                        router.push(`/check-email?email=${encodeURIComponent(email || '')}`);
+                        const email = (
+                          document.getElementById("email") as HTMLInputElement
+                        )?.value;
+                        router.push(
+                          `/check-email?email=${encodeURIComponent(email || "")}`,
+                        );
                       }}
                     >
                       Check your email for verification link
@@ -187,8 +212,10 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <PulsingDots color="white" size="sm" />
                 <span>Cargando...</span>
               </div>
+            ) : mode === "login" ? (
+              "Iniciar Sesión"
             ) : (
-              mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'
+              "Registrarse"
             )}
           </Button>
 
@@ -206,13 +233,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           <GoogleLoginButton disabled={showLoading} />
 
           <div className="text-sm text-center font-marcellus text-charcoal/70">
-            {mode === 'login' ? (
+            {mode === "login" ? (
               <p>
-                ¿No tienes una cuenta?{' '}
+                ¿No tienes una cuenta?{" "}
                 <Button
                   variant="link"
                   className="p-0 font-marcellus text-coral hover:text-coral/80"
-                  onClick={() => router.push('/register')}
+                  onClick={() => router.push("/register")}
                   disabled={showLoading}
                 >
                   Regístrate aquí
@@ -220,11 +247,11 @@ export function AuthForm({ mode }: AuthFormProps) {
               </p>
             ) : (
               <p>
-                ¿Ya tienes una cuenta?{' '}
+                ¿Ya tienes una cuenta?{" "}
                 <Button
                   variant="link"
                   className="p-0 font-marcellus text-coral hover:text-coral/80"
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push("/login")}
                   disabled={showLoading}
                 >
                   Inicia sesión aquí
@@ -236,4 +263,4 @@ export function AuthForm({ mode }: AuthFormProps) {
       </form>
     </Card>
   );
-} 
+}

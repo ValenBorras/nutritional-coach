@@ -1,14 +1,20 @@
-import { Metadata } from "next"
-import Link from "next/link"
-import { Button } from "@/app/components/ui/button"
-import { Input } from "@/app/components/ui/input"
-import { Label } from "@/app/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { Metadata } from "next";
+import Link from "next/link";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Recuperar Contraseña - NutriGuide",
   description: "Recupera el acceso a tu cuenta de NutriGuide.",
-}
+};
 
 export default function ForgotPasswordPage() {
   return (
@@ -24,13 +30,16 @@ export default function ForgotPasswordPage() {
             Recupera Tu Contraseña
           </CardTitle>
           <CardDescription className="text-center text-charcoal/70">
-            Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña
+            Ingresa tu correo electrónico y te enviaremos instrucciones para
+            restablecer tu contraseña
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-charcoal">Correo Electrónico</Label>
+              <Label htmlFor="email" className="text-charcoal">
+                Correo Electrónico
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -57,5 +66,5 @@ export default function ForgotPasswordPage() {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

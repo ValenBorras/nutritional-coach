@@ -1,20 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Input } from '@/app/components/ui/input';
-import { Label } from '@/app/components/ui/label';
-import { UserPlus, Check, AlertCircle, X } from 'lucide-react';
-import { useAuth } from '@/app/components/auth/auth-provider';
+import { useState } from "react";
+import { Button } from "@/app/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { UserPlus, Check, AlertCircle, X } from "lucide-react";
+import { useAuth } from "@/app/components/auth/auth-provider";
 
 interface ConnectNutritionistProps {
   onSuccess?: () => void;
 }
 
-export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistProps) {
+export default function ConnectNutritionist({
+  onSuccess,
+}: ConnectNutritionistProps) {
   const { user, refreshUser } = useAuth();
-  const [patientKey, setPatientKey] = useState('');
+  const [patientKey, setPatientKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -24,9 +32,9 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!patientKey.trim()) {
-      setError('La clave de nutricionista es obligatoria');
+      setError("La clave de nutricionista es obligatoria");
       return;
     }
 
@@ -35,26 +43,26 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
     setSuccess(null);
 
     try {
-      const response = await fetch('/api/patient/connect-nutritionist', {
-        method: 'POST',
+      const response = await fetch("/api/patient/connect-nutritionist", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          patient_key: patientKey.trim()
+          patient_key: patientKey.trim(),
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('¡Conectado exitosamente con tu nutricionista!');
+        setSuccess("¡Conectado exitosamente con tu nutricionista!");
         setConnectedNutritionist(data.nutritionist);
-        setPatientKey('');
-        
+        setPatientKey("");
+
         // Refrescar datos del usuario
         await refreshUser();
-        
+
         // Callback para el componente padre
         if (onSuccess) {
           onSuccess();
@@ -65,10 +73,10 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
           setSuccess(null);
         }, 5000);
       } else {
-        setError(data.error || 'Error al conectar con la nutricionista');
+        setError(data.error || "Error al conectar con la nutricionista");
       }
     } catch (err) {
-      setError('Error de conexión. Inténtalo de nuevo.');
+      setError("Error de conexión. Inténtalo de nuevo.");
     } finally {
       setIsConnecting(false);
     }
@@ -94,7 +102,9 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
             </div>
             <div>
               <p className="font-medium text-green-800">Estado: Conectado</p>
-              <p className="text-sm text-green-600">Tu nutricionista puede personalizar tus recomendaciones</p>
+              <p className="text-sm text-green-600">
+                Tu nutricionista puede personalizar tus recomendaciones
+              </p>
             </div>
           </div>
         </CardContent>
@@ -110,14 +120,16 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
           Conectar con Nutricionista
         </CardTitle>
         <CardDescription>
-          Si tienes una clave de nutricionista, conéctate para recibir consejos personalizados
+          Si tienes una clave de nutricionista, conéctate para recibir consejos
+          personalizados
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+
             <span className="text-sm text-red-700">{error}</span>
           </div>
         )}
@@ -125,6 +137,7 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
         {success && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
             <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+
             <span className="text-sm text-green-700">{success}</span>
           </div>
         )}
@@ -141,13 +154,14 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
               className="font-mono"
               disabled={isConnecting}
             />
+
             <p className="text-xs text-charcoal/60">
               Tu nutricionista te proporcionará esta clave única
             </p>
           </div>
 
           <div className="flex gap-3">
-            <Button 
+            <Button
               type="submit"
               disabled={isConnecting || !patientKey.trim()}
               className="flex-1 bg-coral hover:bg-coral/90 text-white"
@@ -164,13 +178,13 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
                 </>
               )}
             </Button>
-            
+
             {patientKey && (
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setPatientKey('')}
+                onClick={() => setPatientKey("")}
                 disabled={isConnecting}
               >
                 <X className="w-4 h-4" />
@@ -181,9 +195,13 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
 
         {/* Info Box */}
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h4 className="font-medium text-blue-900 mb-2">¿Qué pasa cuando me conecto?</h4>
+          <h4 className="font-medium text-blue-900 mb-2">
+            ¿Qué pasa cuando me conecto?
+          </h4>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Tu nutricionista podrá personalizar las respuestas de la IA</li>
+            <li>
+              • Tu nutricionista podrá personalizar las respuestas de la IA
+            </li>
             <li>• Recibirás consejos basados en su filosofía profesional</li>
             <li>• Las recomendaciones serán más específicas para ti</li>
             <li>• Podrás acceder a planes y seguimiento personalizado</li>
@@ -192,13 +210,16 @@ export default function ConnectNutritionist({ onSuccess }: ConnectNutritionistPr
 
         {/* Optional: No key yet */}
         <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-700 mb-2 font-medium">¿No tienes una clave de nutricionista?</p>
+          <p className="text-sm text-gray-700 mb-2 font-medium">
+            ¿No tienes una clave de nutricionista?
+          </p>
           <p className="text-xs text-gray-600">
-            Puedes usar NutriGuide sin conectarte a una nutricionista. El asistente de IA te dará consejos generales de nutrición.
-            Más adelante podrás conectarte cuando tengas una clave.
+            Puedes usar NutriGuide sin conectarte a una nutricionista. El
+            asistente de IA te dará consejos generales de nutrición. Más
+            adelante podrás conectarte cuando tengas una clave.
           </p>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

@@ -392,6 +392,80 @@ console.log('PWA Detection:', {
 - [Web App Manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest)
 - [PWA Checklist](https://web.dev/pwa-checklist/)
 
+## 🔐 Comportamiento de Logout en PWA
+
+### Nueva Funcionalidad Implementada
+
+Cuando un usuario hace logout desde la PWA instalada, el sistema ahora:
+
+1. **Detecta el Modo PWA**: Utiliza el hook `usePWADetection` para verificar si la app está ejecutándose en modo standalone
+2. **Redirección Inteligente**: 
+   - ✅ **En PWA**: Redirige directamente a `/login`
+   - 🌐 **En Browser**: Redirige a `/` (página principal)
+
+### Componentes Actualizados
+
+#### `LogoutButton` (`/app/components/auth/logout-button.tsx`)
+```typescript
+const handleLogout = async () => {
+  await signOut();
+  
+  // If we're in PWA mode, redirect directly to login
+  // Otherwise, redirect to homepage
+  if (isPWA) {
+    console.log('🔐 PWA logout detected, redirecting to login');
+    router.push('/login');
+  } else {
+    router.push('/');
+  }
+  
+  router.refresh();
+};
+```
+
+#### `DashboardLayout` (`/app/components/dashboard-layout.tsx`)
+```typescript
+const handleLogout = async () => {
+  try {
+    await signOut()
+    
+    // If we're in PWA mode, redirect directly to login
+    if (isPWA) {
+      console.log('🔐 PWA logout detected in dashboard, redirecting to login');
+      router.push('/login');
+      router.refresh();
+    }
+    // If not PWA, the auth state change will automatically redirect
+  } catch (error) {
+    console.error('Error signing out:', error)
+  }
+}
+```
+
+### Beneficios de esta Implementación
+
+1. **UX Consistente**: Los usuarios de PWA siempre ven la pantalla de login después del logout
+2. **Navegación Eficiente**: Evita redirecciones innecesarias a través del landing page
+3. **Comportamiento Nativo**: Se comporta como una app móvil nativa
+4. **Compatibilidad**: Mantiene el comportamiento original para usuarios de navegador
+
+### Testing del Logout PWA
+
+Para probar esta funcionalidad:
+
+1. **Instalar la PWA** en tu dispositivo móvil o desktop
+2. **Hacer login** y navegar al dashboard
+3. **Hacer logout** usando cualquier botón de logout
+4. **Verificar** que redirige directamente a `/login`
+
+**Logs de Debug**:
+```javascript
+// En DevTools Console, deberías ver:
+// 🔐 PWA logout detected, redirecting to login
+// o
+// 🔐 PWA logout detected in dashboard, redirecting to login
+```
+
 ---
 
-**Nota**: Esta implementación proporciona una experiencia nativa completa donde los usuarios de la PWA van directamente a la funcionalidad principal sin ver el landing page, mejorando significativamente la UX móvil. 
+**Nota**: Esta implementación proporciona una experiencia nativa completa donde los usuarios de la PWA van directamente a la funcionalidad principal sin ver el landing page, mejorando significativamente la UX móvil. El comportamiento de logout ahora es consistente con esta experiencia nativa. 

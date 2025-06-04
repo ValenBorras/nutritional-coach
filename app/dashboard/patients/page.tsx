@@ -14,16 +14,21 @@ This file originally contained:
 Will be re-enabled post-MVP when core AI chat is stable.
 */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/app/components/dashboard-layout";
 import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
 import { Badge } from "@/app/components/ui/badge";
 import { UserAvatar } from "@/app/components/ui/user-avatar";
 import { Plus, Copy, Check, User, Clock, Key } from "lucide-react";
-import { useAuth } from '@/app/components/auth/auth-provider';
+import { useAuth } from "@/app/components/auth/auth-provider";
 
 interface PatientKey {
   id: string;
@@ -49,23 +54,23 @@ export default function PatientsPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.role === 'nutritionist') {
+    if (user?.role === "nutritionist") {
       fetchPatientKeys();
     }
   }, [user]);
 
   const fetchPatientKeys = async () => {
     try {
-      const response = await fetch('/api/nutritionist/patient-keys');
+      const response = await fetch("/api/nutritionist/patient-keys");
       if (response.ok) {
         const data = await response.json();
         setPatientKeys(data.keys || []);
       } else {
-        setError('Error al cargar las claves');
+        setError("Error al cargar las claves");
       }
     } catch (error) {
-      console.error('Error fetching patient keys:', error);
-      setError('Error al cargar las claves');
+      console.error("Error fetching patient keys:", error);
+      setError("Error al cargar las claves");
     } finally {
       setIsLoading(false);
     }
@@ -75,8 +80,8 @@ export default function PatientsPage() {
     setIsGenerating(true);
     setError(null);
     try {
-      const response = await fetch('/api/nutritionist/generate-patient-key', {
-        method: 'POST',
+      const response = await fetch("/api/nutritionist/generate-patient-key", {
+        method: "POST",
       });
 
       if (response.ok) {
@@ -84,11 +89,11 @@ export default function PatientsPage() {
         await fetchPatientKeys(); // Refresh the list
       } else {
         const errorData = await response.json();
-        setError(errorData.message || 'Error al generar la clave');
+        setError(errorData.message || "Error al generar la clave");
       }
     } catch (error) {
-      console.error('Error generating key:', error);
-      setError('Error al generar la clave');
+      console.error("Error generating key:", error);
+      setError("Error al generar la clave");
     } finally {
       setIsGenerating(false);
     }
@@ -100,51 +105,55 @@ export default function PatientsPage() {
       setCopiedKey(key);
       setTimeout(() => setCopiedKey(null), 2000);
     } catch (error) {
-      setError('Error al copiar la clave');
+      setError("Error al copiar la clave");
     }
   };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Fecha no disponible';
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!dateString) return "Fecha no disponible";
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  if (user?.role !== 'nutritionist') {
+  if (user?.role !== "nutritionist") {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <p className="text-charcoal/70">Esta página solo está disponible para nutricionistas.</p>
+          <p className="text-charcoal/70">
+            Esta página solo está disponible para nutricionistas.
+          </p>
         </div>
       </DashboardLayout>
     );
   }
 
-  const unusedKeys = patientKeys.filter(key => !key.used);
-  const usedKeys = patientKeys.filter(key => key.used);
+  const unusedKeys = patientKeys.filter((key) => !key.used);
+  const usedKeys = patientKeys.filter((key) => key.used);
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-marcellus text-charcoal">Gestión de Pacientes</h1>
+            <h1 className="text-2xl font-marcellus text-charcoal">
+              Gestión de Pacientes
+            </h1>
             <p className="text-charcoal/70 mt-1">
               Genera claves únicas para añadir nuevos pacientes a tu práctica
             </p>
           </div>
-          <Button 
+          <Button
             onClick={generateNewKey}
             disabled={isGenerating}
             className="bg-coral hover:bg-coral/90 text-mist-white gap-2"
           >
             <Plus size={16} />
-            {isGenerating ? 'Generando...' : 'Añadir Paciente'}
+            {isGenerating ? "Generando..." : "Añadir Paciente"}
           </Button>
         </div>
 
@@ -167,7 +176,9 @@ export default function PatientsPage() {
               <div className="text-2xl font-marcellus text-charcoal">
                 {usedKeys.length}
               </div>
-              <p className="text-sm text-charcoal/70">Total de pacientes conectados</p>
+              <p className="text-sm text-charcoal/70">
+                Total de pacientes conectados
+              </p>
             </CardContent>
           </Card>
 
@@ -195,7 +206,7 @@ export default function PatientsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-marcellus text-charcoal">
-                {patientKeys.filter(key => !key.isVirtual).length}
+                {patientKeys.filter((key) => !key.isVirtual).length}
               </div>
               <p className="text-sm text-charcoal/70">Generadas hasta ahora</p>
             </CardContent>
@@ -210,13 +221,17 @@ export default function PatientsPage() {
                 Claves Disponibles
               </CardTitle>
               <p className="text-sm text-charcoal/70">
-                Comparte estas claves con tus nuevos pacientes para que puedan registrarse
+                Comparte estas claves con tus nuevos pacientes para que puedan
+                registrarse
               </p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
                 {unusedKeys.map((keyRecord) => (
-                  <div key={keyRecord.id} className="flex items-center justify-between p-4 bg-mist-white rounded-lg border border-soft-rose/20">
+                  <div
+                    key={keyRecord.id}
+                    className="flex items-center justify-between p-4 bg-mist-white rounded-lg border border-soft-rose/20"
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-coral/20 flex items-center justify-center">
                         <Key className="w-5 h-5 text-coral" />
@@ -231,7 +246,10 @@ export default function PatientsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-sage-green/20 text-sage-green">
+                      <Badge
+                        variant="secondary"
+                        className="bg-sage-green/20 text-sage-green"
+                      >
                         Disponible
                       </Badge>
                       <Button
@@ -268,29 +286,35 @@ export default function PatientsPage() {
             <CardContent>
               <div className="grid gap-4">
                 {usedKeys.map((keyRecord) => (
-                  <div key={keyRecord.id} className="flex items-center justify-between p-4 bg-mist-white rounded-lg border border-soft-rose/20">
+                  <div
+                    key={keyRecord.id}
+                    className="flex items-center justify-between p-4 bg-mist-white rounded-lg border border-soft-rose/20"
+                  >
                     <div className="flex items-center gap-4">
                       <UserAvatar
                         src={keyRecord.users?.image}
                         name={keyRecord.users?.name}
                         size="md"
                       />
+
                       <div>
                         <div className="font-semibold text-charcoal">
-                          {keyRecord.users?.name || 'Usuario sin nombre'}
+                          {keyRecord.users?.name || "Usuario sin nombre"}
                         </div>
                         <div className="text-sm text-charcoal/70">
-                          {keyRecord.users?.email || 'Sin email'}
+                          {keyRecord.users?.email || "Sin email"}
                         </div>
                         <div className="text-xs text-charcoal/60">
-                          {keyRecord.isVirtual 
-                            ? 'Conectado a tu práctica'
-                            : `Clave: ${keyRecord.key} • Registrado el ${formatDate(keyRecord.used_at)}`
-                          }
+                          {keyRecord.isVirtual
+                            ? "Conectado a tu práctica"
+                            : `Clave: ${keyRecord.key} • Registrado el ${formatDate(keyRecord.used_at)}`}
                         </div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-soft-rose/20 text-soft-rose">
+                    <Badge
+                      variant="secondary"
+                      className="bg-soft-rose/20 text-soft-rose"
+                    >
                       Activo
                     </Badge>
                   </div>
@@ -310,19 +334,20 @@ export default function PatientsPage() {
           <Card className="bg-warm-sand border-soft-rose/20">
             <CardContent className="text-center py-12">
               <Key className="w-12 h-12 text-charcoal/40 mx-auto mb-4" />
+
               <h3 className="text-lg font-medium text-charcoal mb-2">
                 No tienes claves generadas
               </h3>
               <p className="text-charcoal/70 mb-6">
                 Genera tu primera clave para comenzar a añadir pacientes
               </p>
-              <Button 
+              <Button
                 onClick={generateNewKey}
                 disabled={isGenerating}
                 className="bg-coral hover:bg-coral/90 text-mist-white gap-2"
               >
                 <Plus size={16} />
-                {isGenerating ? 'Generando...' : 'Generar Primera Clave'}
+                {isGenerating ? "Generando..." : "Generar Primera Clave"}
               </Button>
             </CardContent>
           </Card>
@@ -330,4 +355,4 @@ export default function PatientsPage() {
       </div>
     </DashboardLayout>
   );
-} 
+}

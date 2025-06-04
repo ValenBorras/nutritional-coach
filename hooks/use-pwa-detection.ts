@@ -42,7 +42,7 @@ export function usePWADetection(): PWADetection {
       }
 
       // Method 1: Check display-mode media query (most reliable for modern browsers)
-      if (window.matchMedia('(display-mode: standalone)').matches) {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
         isPWA = true
         isStandalone = true
         source = 'standalone'
@@ -75,7 +75,7 @@ export function usePWADetection(): PWADetection {
       // Method 5: Check for TWA (Trusted Web Activity) indicators
       if (!isPWA && isAndroid) {
         // Check for TWA specific headers or indicators
-        const isTWA = window.matchMedia('(display-mode: standalone)').matches ||
+        const isTWA = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
                      document.referrer.startsWith('android-app://') ||
                      (window as any).chrome?.webstore === undefined
         
@@ -119,7 +119,7 @@ export function usePWADetection(): PWADetection {
         source: result.source,
         isStandalone: result.isStandalone,
         userAgent: navigator.userAgent,
-        displayMode: window.matchMedia('(display-mode: standalone)').matches,
+        displayMode: window.matchMedia ? window.matchMedia('(display-mode: standalone)').matches : false,
         navigatorStandalone: (navigator as any).standalone,
         referrer: document.referrer,
         urlParams: window.location.search

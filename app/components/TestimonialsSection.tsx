@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/app/components/ui/card"
-import { Quote } from "lucide-react"
+import { Card, CardContent } from "@/app/components/ui/card";
+import { Quote } from "lucide-react";
 
 export default function TestimonialsSection() {
   const testimonials = [
@@ -31,7 +31,7 @@ export default function TestimonialsSection() {
       age: 47,
       achievement: "Reducción de inflamación",
     },
-  ]
+  ];
 
   return (
     <section id="testimonials" className="py-16 md:py-24 bg-sage-green/10">
@@ -41,16 +41,23 @@ export default function TestimonialsSection() {
             Historias de <span className="text-coral">Personas Como Tú</span>
           </h2>
           <p className="text-lg text-charcoal/70">
-            Escucha a personas que han transformado su relación con la nutrición usando NutriGuide.
+            Escucha a personas que han transformado su relación con la nutrición
+            usando NutriGuide.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="bg-warm-sand border-soft-rose/20 shadow-sm hover:shadow-md transition-shadow">
+            <Card
+              key={index}
+              className="bg-warm-sand border-soft-rose/20 shadow-sm hover:shadow-md transition-shadow"
+            >
               <CardContent className="p-8">
                 <Quote className="w-10 h-10 text-soft-rose mb-4" />
-                <p className="text-charcoal/80 mb-6 italic">"{testimonial.quote}"</p>
+
+                <p className="text-charcoal/80 mb-6 italic">
+                  "{testimonial.quote}"
+                </p>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-soft-rose flex items-center justify-center">
                     <span className="font-semibold text-charcoal">
@@ -62,7 +69,9 @@ export default function TestimonialsSection() {
                     <p className="font-semibold text-charcoal">
                       {testimonial.name}, {testimonial.age}
                     </p>
-                    <p className="text-sm text-sage-green">{testimonial.achievement}</p>
+                    <p className="text-sm text-sage-green">
+                      {testimonial.achievement}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -71,5 +80,5 @@ export default function TestimonialsSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

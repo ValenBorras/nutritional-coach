@@ -1,5 +1,5 @@
-import { Button } from "@/app/components/ui/button"
-import Link from "next/link"
+import { Button } from "@/app/components/ui/button";
+import Link from "next/link";
 
 export default function CTASection() {
   return (
@@ -7,11 +7,13 @@ export default function CTASection() {
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-marcellus text-charcoal mb-6">
-            Comienza Tu Viaje Hacia una <span className="text-coral">Mejor Salud</span> Hoy
+            Comienza Tu Viaje Hacia una{" "}
+            <span className="text-coral">Mejor Salud</span> Hoy
           </h2>
           <p className="text-lg text-charcoal/70 mb-8">
-            Únete a miles de personas que están transformando su relación con la nutrición a través de una
-            orientación personalizada y alineada con expertos.
+            Únete a miles de personas que están transformando su relación con la
+            nutrición a través de una orientación personalizada y alineada con
+            expertos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
@@ -28,9 +30,11 @@ export default function CTASection() {
               </Button>
             </Link>
           </div>
-          <p className="text-sm text-charcoal/60 mt-6">No se requiere tarjeta de crédito. Prueba gratuita de 14 días.</p>
+          <p className="text-sm text-charcoal/60 mt-6">
+            No se requiere tarjeta de crédito. Prueba gratuita de 14 días.
+          </p>
         </div>
       </div>
     </section>
-  )
+  );
 }

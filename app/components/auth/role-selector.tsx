@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
 import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
 import { User, UserCog } from "lucide-react";
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 interface RoleSelectorProps {
-  onSelect: (role: 'patient' | 'nutritionist') => void;
+  onSelect: (role: "patient" | "nutritionist") => void;
 }
 
 export function RoleSelector({ onSelect }: RoleSelectorProps) {
@@ -19,14 +25,18 @@ export function RoleSelector({ onSelect }: RoleSelectorProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Card className="cursor-pointer hover:border-coral transition-colors h-full" onClick={() => onSelect('patient')}>
+        <Card
+          className="cursor-pointer hover:border-coral transition-colors h-full"
+          onClick={() => onSelect("patient")}
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-marcellus">
               <User className="h-6 w-6 text-coral" />
               Paciente
             </CardTitle>
             <CardDescription>
-              Recibe orientación nutricional personalizada y seguimiento de tu progreso
+              Recibe orientación nutricional personalizada y seguimiento de tu
+              progreso
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -47,14 +57,18 @@ export function RoleSelector({ onSelect }: RoleSelectorProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <Card className="cursor-pointer hover:border-coral transition-colors h-full" onClick={() => onSelect('nutritionist')}>
+        <Card
+          className="cursor-pointer hover:border-coral transition-colors h-full"
+          onClick={() => onSelect("nutritionist")}
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-marcellus">
               <UserCog className="h-6 w-6 text-coral" />
               Nutricionista
             </CardTitle>
             <CardDescription>
-              Potencia tu práctica con IA y gestiona a tus pacientes eficientemente
+              Potencia tu práctica con IA y gestiona a tus pacientes
+              eficientemente
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -69,4 +83,4 @@ export function RoleSelector({ onSelect }: RoleSelectorProps) {
       </motion.div>
     </div>
   );
-} 
+}

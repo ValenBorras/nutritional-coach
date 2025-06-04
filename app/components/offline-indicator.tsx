@@ -1,49 +1,49 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { WifiOff, Wifi } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { WifiOff, Wifi } from "lucide-react";
 
 export default function OfflineIndicator() {
-  const [isOnline, setIsOnline] = useState(true)
-  const [showIndicator, setShowIndicator] = useState(false)
+  const [isOnline, setIsOnline] = useState(true);
+  const [showIndicator, setShowIndicator] = useState(false);
 
   useEffect(() => {
     const updateOnlineStatus = () => {
-      const online = navigator.onLine
-      setIsOnline(online)
-      
+      const online = navigator.onLine;
+      setIsOnline(online);
+
       if (!online) {
-        setShowIndicator(true)
+        setShowIndicator(true);
       } else {
         // Show "back online" message briefly
         if (!isOnline) {
-          setShowIndicator(true)
-          setTimeout(() => setShowIndicator(false), 3000)
+          setShowIndicator(true);
+          setTimeout(() => setShowIndicator(false), 3000);
         }
       }
-    }
+    };
 
     // Set initial status
-    updateOnlineStatus()
+    updateOnlineStatus();
 
     // Listen for online/offline events
-    window.addEventListener('online', updateOnlineStatus)
-    window.addEventListener('offline', updateOnlineStatus)
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
 
     return () => {
-      window.removeEventListener('online', updateOnlineStatus)
-      window.removeEventListener('offline', updateOnlineStatus)
-    }
-  }, [isOnline])
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, [isOnline]);
 
-  if (!showIndicator) return null
+  if (!showIndicator) return null;
 
   return (
-    <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
-      isOnline 
-        ? 'bg-[#A8CBB7] text-white' 
-        : 'bg-[#F88379] text-white'
-    }`}>
+    <div
+      className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+        isOnline ? "bg-[#A8CBB7] text-white" : "bg-[#F88379] text-white"
+      }`}
+    >
       <div className="flex items-center space-x-2">
         {isOnline ? (
           <>
@@ -53,10 +53,12 @@ export default function OfflineIndicator() {
         ) : (
           <>
             <WifiOff className="h-4 w-4" />
-            <span className="text-sm font-medium">Sin conexión - Modo offline</span>
+            <span className="text-sm font-medium">
+              Sin conexión - Modo offline
+            </span>
           </>
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

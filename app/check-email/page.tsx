@@ -1,44 +1,52 @@
-'use client';
+"use client";
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { createClient } from '@/lib/supabase/client';
-import { Mail, RefreshCw, ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import { Mail, RefreshCw, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 function CheckEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
+  const email = searchParams.get("email") || "";
   const [isResending, setIsResending] = useState(false);
-  const [resendMessage, setResendMessage] = useState('');
+  const [resendMessage, setResendMessage] = useState("");
 
   const handleResendVerification = async () => {
     if (!email) {
-      setResendMessage('No se encontró la dirección de email');
+      setResendMessage("No se encontró la dirección de email");
       return;
     }
 
     setIsResending(true);
-    setResendMessage('');
+    setResendMessage("");
 
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
+        type: "signup",
+        email: email,
       });
 
       if (error) {
         throw error;
       }
 
-      setResendMessage('✅ Email de verificación reenviado exitosamente');
+      setResendMessage("✅ Email de verificación reenviado exitosamente");
     } catch (error) {
-      console.error('Error resending verification:', error);
-      setResendMessage(`❌ Error: ${error instanceof Error ? error.message : 'No se pudo reenviar el email'}`);
+      console.error("Error resending verification:", error);
+      setResendMessage(
+        `❌ Error: ${error instanceof Error ? error.message : "No se pudo reenviar el email"}`,
+      );
     } finally {
       setIsResending(false);
     }
@@ -83,12 +91,14 @@ function CheckEmailContent() {
                   <strong>Email enviado a:</strong>
                 </p>
                 <p className="text-coral font-marcellus font-medium break-all">
-                  {email || 'tu email registrado'}
+                  {email || "tu email registrado"}
                 </p>
               </div>
 
               <div className="text-left space-y-2">
-                <h3 className="font-marcellus font-medium text-charcoal">Pasos a seguir:</h3>
+                <h3 className="font-marcellus font-medium text-charcoal">
+                  Pasos a seguir:
+                </h3>
                 <ol className="text-sm text-charcoal/70 font-marcellus space-y-1 list-decimal list-inside">
                   <li>Revisa tu bandeja de entrada</li>
                   <li>Busca un email de NutriGuide</li>
@@ -99,8 +109,9 @@ function CheckEmailContent() {
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="text-xs text-amber-700 font-marcellus">
-                  <strong>¿No ves el email?</strong> Revisa tu carpeta de spam o correos no deseados.
-                  El email puede tardar unos minutos en llegar.
+                  <strong>¿No ves el email?</strong> Revisa tu carpeta de spam o
+                  correos no deseados. El email puede tardar unos minutos en
+                  llegar.
                 </p>
               </div>
             </motion.div>
@@ -110,9 +121,9 @@ function CheckEmailContent() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className={`text-center p-3 rounded-lg text-sm font-marcellus ${
-                  resendMessage.includes('✅') 
-                    ? 'bg-green-50 text-green-700 border border-green-200' 
-                    : 'bg-red-50 text-red-700 border border-red-200'
+                  resendMessage.includes("✅")
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
                 }`}
               >
                 {resendMessage}
@@ -144,7 +155,7 @@ function CheckEmailContent() {
               </Button>
 
               <Button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push("/login")}
                 variant="outline"
                 className="w-full font-marcellus"
               >
@@ -160,9 +171,9 @@ function CheckEmailContent() {
               className="text-center"
             >
               <p className="text-xs text-charcoal/50 font-marcellus">
-                ¿Problemas con la verificación? 
+                ¿Problemas con la verificación?
                 <button
-                  onClick={() => router.push('/register')}
+                  onClick={() => router.push("/register")}
                   className="ml-1 text-coral hover:text-coral/80 underline"
                 >
                   Intenta registrarte nuevamente
@@ -178,14 +189,16 @@ function CheckEmailContent() {
 
 export default function CheckEmailPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-sand via-warm-sand/90 to-sage/20">
-        <div className="w-16 h-16 rounded-full bg-coral/10 flex items-center justify-center">
-          <Mail className="w-8 h-8 text-coral animate-pulse" />
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-warm-sand via-warm-sand/90 to-sage/20">
+          <div className="w-16 h-16 rounded-full bg-coral/10 flex items-center justify-center">
+            <Mail className="w-8 h-8 text-coral animate-pulse" />
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <CheckEmailContent />
     </Suspense>
   );
-} 
+}

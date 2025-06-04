@@ -1,19 +1,39 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Badge } from "@/app/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { UserAvatar } from "@/app/components/ui/user-avatar";
 import DashboardLayout from "@/app/components/dashboard-layout";
 import ConnectNutritionist from "@/app/components/connect-nutritionist";
 import PushNotificationsManager from "@/app/components/push-notifications-manager";
 import { useAuth } from "@/app/components/auth/auth-provider";
-import { User, Camera, Target, Heart, AlertCircle, Plus, X, Upload } from "lucide-react";
+import {
+  User,
+  Camera,
+  Target,
+  Heart,
+  AlertCircle,
+  Plus,
+  X,
+  Upload,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 interface UserData {
@@ -27,10 +47,15 @@ interface ProfileData {
   last_name?: string;
   phone_number?: string;
   birth_date?: string;
-  gender?: 'male' | 'female' | 'other';
+  gender?: "male" | "female" | "other";
   height?: number;
   weight?: number;
-  activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  activity_level?:
+    | "sedentary"
+    | "light"
+    | "moderate"
+    | "active"
+    | "very_active";
   goals?: string[];
   allergies?: string[];
   dietary_restrictions?: string[];
@@ -43,9 +68,9 @@ interface ProfileData {
 export default function SettingsPage() {
   const { user } = useAuth();
   const [userData, setUserData] = useState<UserData>({
-    name: '',
-    email: '',
-    image: '',
+    name: "",
+    email: "",
+    image: "",
   });
   const [profileData, setProfileData] = useState<ProfileData>({});
   const [loading, setLoading] = useState(true);
@@ -56,14 +81,14 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State for dynamic arrays
-  const [newGoal, setNewGoal] = useState('');
-  const [newAllergy, setNewAllergy] = useState('');
-  const [newRestriction, setNewRestriction] = useState('');
-  const [newCondition, setNewCondition] = useState('');
-  const [newSpecialization, setNewSpecialization] = useState('');
-  const [newCertification, setNewCertification] = useState('');
+  const [newGoal, setNewGoal] = useState("");
+  const [newAllergy, setNewAllergy] = useState("");
+  const [newRestriction, setNewRestriction] = useState("");
+  const [newCondition, setNewCondition] = useState("");
+  const [newSpecialization, setNewSpecialization] = useState("");
+  const [newCertification, setNewCertification] = useState("");
 
-  const isNutritionist = user?.role === 'nutritionist';
+  const isNutritionist = user?.role === "nutritionist";
 
   useEffect(() => {
     if (user) {
@@ -73,20 +98,20 @@ export default function SettingsPage() {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch('/api/user/profile');
+      const response = await fetch("/api/user/profile");
       if (response.ok) {
         const data = await response.json();
         setUserData({
-          name: data.user?.name || '',
-          email: data.user?.email || '',
-          image: data.user?.image || '',
+          name: data.user?.name || "",
+          email: data.user?.email || "",
+          image: data.user?.image || "",
         });
         setProfileData(data.profile || {});
       } else {
-        setError('Error loading profile data');
+        setError("Error loading profile data");
       }
     } catch (error) {
-      setError('Error loading profile data');
+      setError("Error loading profile data");
     } finally {
       setLoading(false);
     }
@@ -98,10 +123,10 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userData: {
@@ -113,27 +138,31 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
-        setSuccess('Profile updated successfully!');
+        setSuccess("Profile updated successfully!");
         setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Error updating profile');
+        setError(errorData.error || "Error updating profile");
       }
     } catch (error) {
-      setError('Error updating profile');
+      setError("Error updating profile");
     } finally {
       setSaving(false);
     }
   };
 
-  const addToArray = (field: keyof ProfileData, value: string, setter: (value: string) => void) => {
+  const addToArray = (
+    field: keyof ProfileData,
+    value: string,
+    setter: (value: string) => void,
+  ) => {
     if (!value.trim()) return;
     const currentArray = (profileData[field] as string[]) || [];
     setProfileData({
       ...profileData,
       [field]: [...currentArray, value.trim()],
     });
-    setter('');
+    setter("");
   };
 
   const removeFromArray = (field: keyof ProfileData, index: number) => {
@@ -144,21 +173,23 @@ export default function SettingsPage() {
     });
   };
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      setError('Tipo de archivo no válido. Solo se permiten JPEG, PNG y WebP.');
+      setError("Tipo de archivo no válido. Solo se permiten JPEG, PNG y WebP.");
       return;
     }
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError('Archivo demasiado grande. El tamaño máximo es 5MB.');
+      setError("Archivo demasiado grande. El tamaño máximo es 5MB.");
       return;
     }
 
@@ -167,28 +198,28 @@ export default function SettingsPage() {
 
     try {
       const formData = new FormData();
-      formData.append('avatar', file);
+      formData.append("avatar", file);
 
-      const response = await fetch('/api/user/upload-avatar', {
-        method: 'POST',
+      const response = await fetch("/api/user/upload-avatar", {
+        method: "POST",
         body: formData,
       });
 
       if (response.ok) {
         const data = await response.json();
-        setUserData(prev => ({ ...prev, image: data.imageUrl }));
-        setSuccess('Foto de perfil actualizada exitosamente!');
+        setUserData((prev) => ({ ...prev, image: data.imageUrl }));
+        setSuccess("Foto de perfil actualizada exitosamente!");
         setTimeout(() => setSuccess(null), 3000);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Error subiendo la imagen');
+        setError(errorData.error || "Error subiendo la imagen");
       }
     } catch (error) {
-      setError('Error subiendo la imagen');
+      setError("Error subiendo la imagen");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -207,7 +238,9 @@ export default function SettingsPage() {
     <DashboardLayout>
       <div className="p-6 max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-marcellus text-charcoal mb-2">Configuración</h1>
+          <h1 className="text-3xl font-marcellus text-charcoal mb-2">
+            Configuración
+          </h1>
           <p className="text-charcoal/70">
             Gestiona tu perfil, objetivos y preferencias
           </p>
@@ -254,6 +287,7 @@ export default function SettingsPage() {
                     size="xl"
                     className="w-20 h-20"
                   />
+
                   <Button
                     type="button"
                     variant="outline"
@@ -311,7 +345,9 @@ export default function SettingsPage() {
                   <Input
                     id="name"
                     value={userData.name}
-                    onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                    onChange={(e) =>
+                      setUserData({ ...userData, name: e.target.value })
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -328,8 +364,13 @@ export default function SettingsPage() {
                   <Label htmlFor="firstName">Nombre</Label>
                   <Input
                     id="firstName"
-                    value={profileData.first_name || ''}
-                    onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
+                    value={profileData.first_name || ""}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        first_name: e.target.value,
+                      })
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -337,8 +378,13 @@ export default function SettingsPage() {
                   <Label htmlFor="lastName">Apellido</Label>
                   <Input
                     id="lastName"
-                    value={profileData.last_name || ''}
-                    onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
+                    value={profileData.last_name || ""}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        last_name: e.target.value,
+                      })
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -346,8 +392,13 @@ export default function SettingsPage() {
                   <Label htmlFor="phone">Teléfono</Label>
                   <Input
                     id="phone"
-                    value={profileData.phone_number || ''}
-                    onChange={(e) => setProfileData({ ...profileData, phone_number: e.target.value })}
+                    value={profileData.phone_number || ""}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        phone_number: e.target.value,
+                      })
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -356,8 +407,13 @@ export default function SettingsPage() {
                   <Input
                     id="birthDate"
                     type="date"
-                    value={profileData.birth_date || ''}
-                    onChange={(e) => setProfileData({ ...profileData, birth_date: e.target.value })}
+                    value={profileData.birth_date || ""}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        birth_date: e.target.value,
+                      })
+                    }
                     className="mt-1"
                   />
                 </div>
@@ -379,8 +435,10 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="gender">Género</Label>
                     <Select
-                      value={profileData.gender || ''}
-                      onValueChange={(value) => setProfileData({ ...profileData, gender: value as any })}
+                      value={profileData.gender || ""}
+                      onValueChange={(value) =>
+                        setProfileData({ ...profileData, gender: value as any })
+                      }
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Seleccionar" />
@@ -397,8 +455,13 @@ export default function SettingsPage() {
                     <Input
                       id="height"
                       type="number"
-                      value={profileData.height || ''}
-                      onChange={(e) => setProfileData({ ...profileData, height: parseFloat(e.target.value) || undefined })}
+                      value={profileData.height || ""}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          height: parseFloat(e.target.value) || undefined,
+                        })
+                      }
                       className="mt-1"
                     />
                   </div>
@@ -407,8 +470,13 @@ export default function SettingsPage() {
                     <Input
                       id="weight"
                       type="number"
-                      value={profileData.weight || ''}
-                      onChange={(e) => setProfileData({ ...profileData, weight: parseFloat(e.target.value) || undefined })}
+                      value={profileData.weight || ""}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          weight: parseFloat(e.target.value) || undefined,
+                        })
+                      }
                       className="mt-1"
                     />
                   </div>
@@ -416,8 +484,13 @@ export default function SettingsPage() {
                 <div>
                   <Label htmlFor="activityLevel">Nivel de actividad</Label>
                   <Select
-                    value={profileData.activity_level || ''}
-                    onValueChange={(value) => setProfileData({ ...profileData, activity_level: value as any })}
+                    value={profileData.activity_level || ""}
+                    onValueChange={(value) =>
+                      setProfileData({
+                        ...profileData,
+                        activity_level: value as any,
+                      })
+                    }
                   >
                     <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Seleccionar nivel de actividad" />
@@ -451,8 +524,13 @@ export default function SettingsPage() {
                     <Input
                       id="experience"
                       type="number"
-                      value={profileData.experience || ''}
-                      onChange={(e) => setProfileData({ ...profileData, experience: parseInt(e.target.value) || undefined })}
+                      value={profileData.experience || ""}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          experience: parseInt(e.target.value) || undefined,
+                        })
+                      }
                       className="mt-1"
                     />
                   </div>
@@ -467,29 +545,51 @@ export default function SettingsPage() {
                         value={newSpecialization}
                         onChange={(e) => setNewSpecialization(e.target.value)}
                         placeholder="Agregar especialización..."
-                        onKeyPress={(e) => e.key === 'Enter' && addToArray('specializations', newSpecialization, setNewSpecialization)}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          addToArray(
+                            "specializations",
+                            newSpecialization,
+                            setNewSpecialization,
+                          )
+                        }
                       />
+
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => addToArray('specializations', newSpecialization, setNewSpecialization)}
+                        onClick={() =>
+                          addToArray(
+                            "specializations",
+                            newSpecialization,
+                            setNewSpecialization,
+                          )
+                        }
                       >
                         <Plus size={16} />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {(profileData.specializations || []).map((spec, index) => (
-                        <Badge key={index} variant="secondary" className="gap-1">
-                          {spec}
-                          <button
-                            onClick={() => removeFromArray('specializations', index)}
-                            className="ml-1 hover:text-red-500"
+                      {(profileData.specializations || []).map(
+                        (spec, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="gap-1"
                           >
-                            <X size={12} />
-                          </button>
-                        </Badge>
-                      ))}
+                            {spec}
+                            <button
+                              onClick={() =>
+                                removeFromArray("specializations", index)
+                              }
+                              className="ml-1 hover:text-red-500"
+                            >
+                              <X size={12} />
+                            </button>
+                          </Badge>
+                        ),
+                      )}
                     </div>
                   </div>
                 </div>
@@ -503,23 +603,43 @@ export default function SettingsPage() {
                         value={newCertification}
                         onChange={(e) => setNewCertification(e.target.value)}
                         placeholder="Agregar certificación..."
-                        onKeyPress={(e) => e.key === 'Enter' && addToArray('certifications', newCertification, setNewCertification)}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          addToArray(
+                            "certifications",
+                            newCertification,
+                            setNewCertification,
+                          )
+                        }
                       />
+
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => addToArray('certifications', newCertification, setNewCertification)}
+                        onClick={() =>
+                          addToArray(
+                            "certifications",
+                            newCertification,
+                            setNewCertification,
+                          )
+                        }
                       >
                         <Plus size={16} />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {(profileData.certifications || []).map((cert, index) => (
-                        <Badge key={index} variant="secondary" className="gap-1">
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="gap-1"
+                        >
                           {cert}
                           <button
-                            onClick={() => removeFromArray('certifications', index)}
+                            onClick={() =>
+                              removeFromArray("certifications", index)
+                            }
                             className="ml-1 hover:text-red-500"
                           >
                             <X size={12} />
@@ -552,23 +672,31 @@ export default function SettingsPage() {
                         value={newGoal}
                         onChange={(e) => setNewGoal(e.target.value)}
                         placeholder="Agregar objetivo..."
-                        onKeyPress={(e) => e.key === 'Enter' && addToArray('goals', newGoal, setNewGoal)}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          addToArray("goals", newGoal, setNewGoal)
+                        }
                       />
+
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => addToArray('goals', newGoal, setNewGoal)}
+                        onClick={() => addToArray("goals", newGoal, setNewGoal)}
                       >
                         <Plus size={16} />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {(profileData.goals || []).map((goal, index) => (
-                        <Badge key={index} variant="secondary" className="gap-1">
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="gap-1"
+                        >
                           {goal}
                           <button
-                            onClick={() => removeFromArray('goals', index)}
+                            onClick={() => removeFromArray("goals", index)}
                             className="ml-1 hover:text-red-500"
                           >
                             <X size={12} />
@@ -588,23 +716,33 @@ export default function SettingsPage() {
                         value={newAllergy}
                         onChange={(e) => setNewAllergy(e.target.value)}
                         placeholder="Agregar alergia..."
-                        onKeyPress={(e) => e.key === 'Enter' && addToArray('allergies', newAllergy, setNewAllergy)}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          addToArray("allergies", newAllergy, setNewAllergy)
+                        }
                       />
+
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => addToArray('allergies', newAllergy, setNewAllergy)}
+                        onClick={() =>
+                          addToArray("allergies", newAllergy, setNewAllergy)
+                        }
                       >
                         <Plus size={16} />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {(profileData.allergies || []).map((allergy, index) => (
-                        <Badge key={index} variant="destructive" className="gap-1">
+                        <Badge
+                          key={index}
+                          variant="destructive"
+                          className="gap-1"
+                        >
                           {allergy}
                           <button
-                            onClick={() => removeFromArray('allergies', index)}
+                            onClick={() => removeFromArray("allergies", index)}
                             className="ml-1 hover:text-red-300"
                           >
                             <X size={12} />
@@ -624,29 +762,51 @@ export default function SettingsPage() {
                         value={newRestriction}
                         onChange={(e) => setNewRestriction(e.target.value)}
                         placeholder="Agregar restricción..."
-                        onKeyPress={(e) => e.key === 'Enter' && addToArray('dietary_restrictions', newRestriction, setNewRestriction)}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          addToArray(
+                            "dietary_restrictions",
+                            newRestriction,
+                            setNewRestriction,
+                          )
+                        }
                       />
+
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => addToArray('dietary_restrictions', newRestriction, setNewRestriction)}
+                        onClick={() =>
+                          addToArray(
+                            "dietary_restrictions",
+                            newRestriction,
+                            setNewRestriction,
+                          )
+                        }
                       >
                         <Plus size={16} />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {(profileData.dietary_restrictions || []).map((restriction, index) => (
-                        <Badge key={index} variant="outline" className="gap-1">
-                          {restriction}
-                          <button
-                            onClick={() => removeFromArray('dietary_restrictions', index)}
-                            className="ml-1 hover:text-red-500"
+                      {(profileData.dietary_restrictions || []).map(
+                        (restriction, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="gap-1"
                           >
-                            <X size={12} />
-                          </button>
-                        </Badge>
-                      ))}
+                            {restriction}
+                            <button
+                              onClick={() =>
+                                removeFromArray("dietary_restrictions", index)
+                              }
+                              className="ml-1 hover:text-red-500"
+                            >
+                              <X size={12} />
+                            </button>
+                          </Badge>
+                        ),
+                      )}
                     </div>
                   </div>
                 </div>
@@ -660,29 +820,51 @@ export default function SettingsPage() {
                         value={newCondition}
                         onChange={(e) => setNewCondition(e.target.value)}
                         placeholder="Agregar condición médica..."
-                        onKeyPress={(e) => e.key === 'Enter' && addToArray('medical_conditions', newCondition, setNewCondition)}
+                        onKeyPress={(e) =>
+                          e.key === "Enter" &&
+                          addToArray(
+                            "medical_conditions",
+                            newCondition,
+                            setNewCondition,
+                          )
+                        }
                       />
+
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => addToArray('medical_conditions', newCondition, setNewCondition)}
+                        onClick={() =>
+                          addToArray(
+                            "medical_conditions",
+                            newCondition,
+                            setNewCondition,
+                          )
+                        }
                       >
                         <Plus size={16} />
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {(profileData.medical_conditions || []).map((condition, index) => (
-                        <Badge key={index} variant="secondary" className="gap-1">
-                          {condition}
-                          <button
-                            onClick={() => removeFromArray('medical_conditions', index)}
-                            className="ml-1 hover:text-red-500"
+                      {(profileData.medical_conditions || []).map(
+                        (condition, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="gap-1"
                           >
-                            <X size={12} />
-                          </button>
-                        </Badge>
-                      ))}
+                            {condition}
+                            <button
+                              onClick={() =>
+                                removeFromArray("medical_conditions", index)
+                              }
+                              className="ml-1 hover:text-red-500"
+                            >
+                              <X size={12} />
+                            </button>
+                          </Badge>
+                        ),
+                      )}
                     </div>
                   </div>
                 </div>
@@ -691,9 +873,7 @@ export default function SettingsPage() {
           )}
 
           {/* Connect Nutritionist (for patients) */}
-          {!isNutritionist && (
-            <ConnectNutritionist />
-          )}
+          {!isNutritionist && <ConnectNutritionist />}
 
           {/* Push Notifications */}
           <PushNotificationsManager />
@@ -705,11 +885,11 @@ export default function SettingsPage() {
               disabled={saving}
               className="bg-coral hover:bg-coral/90 text-mist-white px-8"
             >
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
+              {saving ? "Guardando..." : "Guardar Cambios"}
             </Button>
           </div>
         </div>
       </div>
     </DashboardLayout>
   );
-} 
+}

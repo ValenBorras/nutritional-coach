@@ -1,16 +1,27 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/hooks/use-auth';
-import { Button } from '../ui/button';
-import { useRouter } from 'next/navigation';
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
+import { usePWADetection } from "@/hooks/use-pwa-detection";
 
 export function LogoutButton() {
   const router = useRouter();
   const { signOut } = useAuth();
+  const { isPWA } = usePWADetection();
 
   const handleLogout = async () => {
     await signOut();
-    router.push('/');
+
+    // If we're in PWA mode, redirect directly to login
+    // Otherwise, redirect to homepage
+    if (isPWA) {
+      console.log("🔐 PWA logout detected, redirecting to login");
+      router.push("/login");
+    } else {
+      router.push("/");
+    }
+
     router.refresh();
   };
 
@@ -23,4 +34,4 @@ export function LogoutButton() {
       Cerrar Sesión
     </Button>
   );
-} 
+}

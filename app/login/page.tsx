@@ -1,5 +1,5 @@
-import { AuthForm } from '../components/auth/auth-form';
-import { PageTransition, FadeIn } from '../components/ui/page-transition';
+import { AuthForm } from "../components/auth/auth-form";
+import { PageTransition, FadeIn } from "../components/ui/page-transition";
 
 export default function LoginPage() {
   return (
@@ -9,4 +9,4 @@ export default function LoginPage() {
       </FadeIn>
     </PageTransition>
   );
-} 
+}

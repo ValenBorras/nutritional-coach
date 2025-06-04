@@ -1,16 +1,26 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { Button } from "@/app/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
-import DashboardLayout from "@/app/components/dashboard-layout"
-import NutritionChatbot from "@/app/components/nutrition-chatbot-v2"
-import GeneratePatientKey from "@/app/components/generate-patient-key"
-import ConnectNutritionist from "@/app/components/connect-nutritionist"
-import { Calendar, MessageSquare, Activity, Users, Bot } from "lucide-react"
-import { PageTransition, StaggerContainer, StaggerItem, FadeIn } from "@/app/components/ui/page-transition"
-import { motion } from 'framer-motion'
-import { useAuth } from '@/app/components/auth/auth-provider'
+import { useEffect, useState, useCallback } from "react";
+import { Button } from "@/app/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import DashboardLayout from "@/app/components/dashboard-layout";
+import NutritionChatbot from "@/app/components/nutrition-chatbot-v2";
+import GeneratePatientKey from "@/app/components/generate-patient-key";
+import ConnectNutritionist from "@/app/components/connect-nutritionist";
+import { Calendar, MessageSquare, Activity, Users, Bot } from "lucide-react";
+import {
+  PageTransition,
+  StaggerContainer,
+  StaggerItem,
+  FadeIn,
+} from "@/app/components/ui/page-transition";
+import { motion } from "framer-motion";
+import { useAuth } from "@/app/components/auth/auth-provider";
 
 interface NutritionistStats {
   activePatients: number;
@@ -29,11 +39,13 @@ export default function Dashboard() {
   const { user, profile, loading } = useAuth();
   const [aiConfigured, setAiConfigured] = useState(false);
   const [checkingAi, setCheckingAi] = useState(true);
-  const [nutritionistStats, setNutritionistStats] = useState<NutritionistStats>({
-    activePatients: 0,
-    aiConsultations: 0,
-    generatedKeys: 0,
-  });
+  const [nutritionistStats, setNutritionistStats] = useState<NutritionistStats>(
+    {
+      activePatients: 0,
+      aiConsultations: 0,
+      generatedKeys: 0,
+    },
+  );
   const [patientStats, setPatientStats] = useState<PatientStats>({
     activeDays: 0,
     conversations: 0,
@@ -43,18 +55,18 @@ export default function Dashboard() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
-  const isNutritionist = user?.role === 'nutritionist';
-  const isPatient = user?.role === 'patient';
+  const isNutritionist = user?.role === "nutritionist";
+  const isPatient = user?.role === "patient";
 
   const checkAIConfiguration = useCallback(async () => {
     try {
-      const response = await fetch('/api/nutritionist/ai-rules');
+      const response = await fetch("/api/nutritionist/ai-rules");
       if (response.ok) {
         const data = await response.json();
         setAiConfigured(!!data.rules && !!data.rules.diet_philosophy);
       }
     } catch (error) {
-      console.error('Error checking AI configuration:', error);
+      console.error("Error checking AI configuration:", error);
     } finally {
       setCheckingAi(false);
     }
@@ -63,22 +75,22 @@ export default function Dashboard() {
   const fetchStats = useCallback(async () => {
     try {
       setLoadingStats(true);
-      
+
       if (isNutritionist) {
-        const response = await fetch('/api/nutritionist/stats');
+        const response = await fetch("/api/nutritionist/stats");
         if (response.ok) {
           const data = await response.json();
           setNutritionistStats(data);
         }
       } else if (isPatient) {
-        const response = await fetch('/api/patient/stats');
+        const response = await fetch("/api/patient/stats");
         if (response.ok) {
           const data = await response.json();
           setPatientStats(data);
         }
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error("Error fetching stats:", error);
     } finally {
       setLoadingStats(false);
     }
@@ -115,13 +127,13 @@ export default function Dashboard() {
       <PageTransition>
         <FadeIn delay={0.1}>
           <div className="mb-8">
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-3xl font-marcellus text-charcoal mb-2"
             >
-              {isNutritionist ? '¡Bienvenido!' : '¡Hola!'} {user?.name}
+              {isNutritionist ? "¡Bienvenido!" : "¡Hola!"} {user?.name}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: -10 }}
@@ -129,10 +141,9 @@ export default function Dashboard() {
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
               className="text-charcoal/70"
             >
-              {isNutritionist 
-                ? 'Gestiona tu práctica y ayuda a tus pacientes con IA personalizada'
-                : 'Tu asistente nutricional está aquí para ayudarte a alcanzar tus objetivos'
-              }
+              {isNutritionist
+                ? "Gestiona tu práctica y ayuda a tus pacientes con IA personalizada"
+                : "Tu asistente nutricional está aquí para ayudarte a alcanzar tus objetivos"}
             </motion.p>
           </div>
         </FadeIn>
@@ -147,13 +158,17 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-white/80 text-sm">
-                          {isNutritionist ? 'Pacientes Activos' : 'Días Activos'}
+                          {isNutritionist
+                            ? "Pacientes Activos"
+                            : "Días Activos"}
                         </p>
                         <div className="text-3xl font-bold">
                           {loadingStats ? (
                             <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                          ) : isNutritionist ? (
+                            nutritionistStats.activePatients
                           ) : (
-                            isNutritionist ? nutritionistStats.activePatients : patientStats.activeDays
+                            patientStats.activeDays
                           )}
                         </div>
                       </div>
@@ -169,13 +184,15 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-white/80 text-sm">
-                          {isNutritionist ? 'Consultas IA' : 'Conversaciones'}
+                          {isNutritionist ? "Consultas IA" : "Conversaciones"}
                         </p>
                         <div className="text-3xl font-bold">
                           {loadingStats ? (
                             <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                          ) : isNutritionist ? (
+                            nutritionistStats.aiConsultations
                           ) : (
-                            isNutritionist ? nutritionistStats.aiConsultations : patientStats.conversations
+                            patientStats.conversations
                           )}
                         </div>
                       </div>
@@ -191,15 +208,15 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-white/80 text-sm">
-                          {isNutritionist ? 'Claves Generadas' : 'Progreso'}
+                          {isNutritionist ? "Claves Generadas" : "Progreso"}
                         </p>
                         <div className="text-3xl font-bold">
                           {loadingStats ? (
                             <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                          ) : isNutritionist ? (
+                            nutritionistStats.generatedKeys
                           ) : (
-                            isNutritionist 
-                              ? nutritionistStats.generatedKeys 
-                              : `${patientStats.progress}%`
+                            `${patientStats.progress}%`
                           )}
                         </div>
                       </div>
@@ -231,15 +248,11 @@ export default function Dashboard() {
           {/* Bottom Section - Conditional based on user role */}
           <StaggerItem>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {isNutritionist && (
-                <GeneratePatientKey />
-              )}
-              
+              {isNutritionist && <GeneratePatientKey />}
+
               {/* Connect Nutritionist for Patients without one */}
-              {isPatient && !user?.nutritionist_id && (
-                <ConnectNutritionist />
-              )}
-              
+              {isPatient && !user?.nutritionist_id && <ConnectNutritionist />}
+
               {/* Information Card */}
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-lg">
                 <CardContent className="p-6">
@@ -249,25 +262,35 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-blue-900 mb-2">
-                        🚀 {isNutritionist ? 'NutriGuide IA para Profesionales' : 'NutriGuide IA'}
+                        🚀{" "}
+                        {isNutritionist
+                          ? "NutriGuide IA para Profesionales"
+                          : "NutriGuide IA"}
                       </h3>
                       <p className="text-blue-800 text-sm mb-3">
-                        {isNutritionist 
-                          ? 'Tu asistente de IA personalizado que extiende tu práctica profesional con orientación automatizada para tus pacientes.'
-                          : 'Tu asistente nutricional inteligente que guarda automáticamente todas tus conversaciones.'
-                        }
+                        {isNutritionist
+                          ? "Tu asistente de IA personalizado que extiende tu práctica profesional con orientación automatizada para tus pacientes."
+                          : "Tu asistente nutricional inteligente que guarda automáticamente todas tus conversaciones."}
                       </p>
                       <div className="grid grid-cols-1 gap-2 text-sm text-blue-700">
                         {isNutritionist ? (
                           <>
-                            <div>• 🎯 IA configurada con tu filosofía nutricional</div>
-                            <div>• 👥 Soporte personalizado para tus pacientes</div>
+                            <div>
+                              • 🎯 IA configurada con tu filosofía nutricional
+                            </div>
+                            <div>
+                              • 👥 Soporte personalizado para tus pacientes
+                            </div>
                             <div>• 📊 Monitoreo de interacciones de IA</div>
-                            <div>• 🔧 Control total sobre las recomendaciones</div>
+                            <div>
+                              • 🔧 Control total sobre las recomendaciones
+                            </div>
                           </>
                         ) : (
                           <>
-                            <div>• 💬 Conversaciones guardadas automáticamente</div>
+                            <div>
+                              • 💬 Conversaciones guardadas automáticamente
+                            </div>
                             <div>• 🔍 Historial completo de consultas</div>
                             <div>• 🎯 Consejos personalizados</div>
                             <div>• 🏥 Integración con nutricionistas</div>
@@ -283,5 +306,5 @@ export default function Dashboard() {
         </StaggerContainer>
       </PageTransition>
     </DashboardLayout>
-  )
+  );
 }

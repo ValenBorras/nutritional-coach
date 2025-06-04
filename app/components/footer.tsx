@@ -1,10 +1,10 @@
-import Link from "next/link"
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react"
-import { Button } from "@/app/components/ui/button"
-import { Input } from "@/app/components/ui/input"
+import Link from "next/link";
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-charcoal/95 text-mist-white pt-16 pb-8">
@@ -15,10 +15,13 @@ export default function Footer() {
               <div className="w-10 h-10 rounded-full bg-soft-rose flex items-center justify-center">
                 <span className="font-marcellus text-xl text-charcoal">NG</span>
               </div>
-              <span className="font-marcellus text-2xl text-mist-white">NutriGuide</span>
+              <span className="font-marcellus text-2xl text-mist-white">
+                NutriGuide
+              </span>
             </div>
             <p className="text-mist-white/70 mb-6">
-              Tu coach nutricional de IA 24/7, personalizado a tus necesidades y alineado con la orientación de tu nutricionista.
+              Tu coach nutricional de IA 24/7, personalizado a tus necesidades y
+              alineado con la orientación de tu nutricionista.
             </p>
             <div className="flex gap-4">
               <Link
@@ -49,11 +52,22 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-marcellus text-lg text-mist-white mb-4">Recursos</h3>
+            <h3 className="font-marcellus text-lg text-mist-white mb-4">
+              Recursos
+            </h3>
             <ul className="space-y-3">
-              {["Blog", "Guía Nutricional", "Historias de Éxito", "Preguntas Frecuentes", "Soporte"].map((item, i) => (
+              {[
+                "Blog",
+                "Guía Nutricional",
+                "Historias de Éxito",
+                "Preguntas Frecuentes",
+                "Soporte",
+              ].map((item, i) => (
                 <li key={i}>
-                  <Link href="#" className="text-mist-white/70 hover:text-coral transition-colors">
+                  <Link
+                    href="#"
+                    className="text-mist-white/70 hover:text-coral transition-colors"
+                  >
                     {item}
                   </Link>
                 </li>
@@ -62,17 +76,22 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-marcellus text-lg text-mist-white mb-4">Legal</h3>
+            <h3 className="font-marcellus text-lg text-mist-white mb-4">
+              Legal
+            </h3>
             <ul className="space-y-3">
               {[
                 "Términos de Servicio",
                 "Política de Privacidad",
                 "Política de Cookies",
                 "Cumplimiento GDPR",
-                "Accesibilidad"
+                "Accesibilidad",
               ].map((item, i) => (
                 <li key={i}>
-                  <Link href="#" className="text-mist-white/70 hover:text-coral transition-colors">
+                  <Link
+                    href="#"
+                    className="text-mist-white/70 hover:text-coral transition-colors"
+                  >
                     {item}
                   </Link>
                 </li>
@@ -84,11 +103,12 @@ export default function Footer() {
         <div className="border-t border-mist-white/10 pt-8 text-center text-mist-white/60 text-sm">
           <p>© {currentYear} NutriGuide. Todos los derechos reservados.</p>
           <p className="mt-2">
-            NutriGuide no es un sustituto del consejo médico profesional. Siempre consulta con profesionales de la salud
-            para preocupaciones médicas.
+            NutriGuide no es un sustituto del consejo médico profesional.
+            Siempre consulta con profesionales de la salud para preocupaciones
+            médicas.
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

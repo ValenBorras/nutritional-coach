@@ -1,25 +1,26 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/app/components/ui/button"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/app/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/#features", label: "Características" },
   { href: "/#how-it-works", label: "Cómo Funciona" },
+  { href: "/pricing", label: "Planes" },
   { href: "/#testimonials", label: "Testimonios" },
-]
+];
 
 export function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const pathname = usePathname()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === href
-    return pathname.startsWith(href)
-  }
+    if (href === "/") return pathname === href;
+    return pathname.startsWith(href);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-charcoal/95 backdrop-blur-sm">
@@ -37,7 +38,7 @@ export function Navbar() {
                 href={link.href}
                 className={cn(
                   "text-mist-white hover:text-white transition-colors font-marcellus",
-                  isActive(link.href) && "text-coral"
+                  isActive(link.href) && "text-coral",
                 )}
               >
                 {link.label}
@@ -85,7 +86,7 @@ export function Navbar() {
                 href={link.href}
                 className={cn(
                   "block text-mist-white hover:text-white transition-colors font-marcellus",
-                  isActive(link.href) && "text-coral"
+                  isActive(link.href) && "text-coral",
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -106,5 +107,5 @@ export function Navbar() {
         )}
       </div>
     </nav>
-  )
+  );
 }

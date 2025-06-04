@@ -1,14 +1,17 @@
-'use client'
+"use client";
 
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from "lucide-react";
 
 interface PWALoadingProps {
-  show: boolean
-  message?: string
+  show: boolean;
+  message?: string;
 }
 
-export default function PWALoading({ show, message = 'Cargando...' }: PWALoadingProps) {
-  if (!show) return null
+export default function PWALoading({
+  show,
+  message = "Cargando...",
+}: PWALoadingProps) {
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 bg-[#F5EBDD] dark:bg-[#4A4A4A] z-50 flex items-center justify-center">
@@ -21,5 +24,5 @@ export default function PWALoading({ show, message = 'Cargando...' }: PWALoading
         </p>
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -8,9 +8,13 @@ export default function NutritionPage() {
     <DashboardLayout>
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold mb-4">📊 En Desarrollo</h1>
-        <p className="text-gray-600">El seguimiento nutricional estará disponible después del MVP.</p>
-        <p className="text-sm text-gray-500 mt-2">Enfocándonos en el chat con IA primero.</p>
+        <p className="text-gray-600">
+          El seguimiento nutricional estará disponible después del MVP.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Enfocándonos en el chat con IA primero.
+        </p>
       </div>
     </DashboardLayout>
   );
-} 
+}

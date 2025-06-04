@@ -1,25 +1,35 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Mail, Shield } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Button } from "../ui/button";
+import { Mail, Shield } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface EmailVerificationGuardProps {
   children: React.ReactNode;
 }
 
-export function EmailVerificationGuard({ children }: EmailVerificationGuardProps) {
+export function EmailVerificationGuard({
+  children,
+}: EmailVerificationGuardProps) {
   const { authUser, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && authUser && !authUser.email_confirmed_at) {
       // Redirect unverified users
-      router.push(`/check-email?email=${encodeURIComponent(authUser.email || '')}`);
+      router.push(
+        `/check-email?email=${encodeURIComponent(authUser.email || "")}`,
+      );
     }
   }, [authUser, loading, router]);
 
@@ -64,13 +74,18 @@ export function EmailVerificationGuard({ children }: EmailVerificationGuardProps
             <CardContent className="space-y-6 text-center">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <p className="text-sm text-amber-700 font-marcellus">
-                  Por tu seguridad, necesitas verificar tu dirección de email antes de acceder a tu cuenta.
+                  Por tu seguridad, necesitas verificar tu dirección de email
+                  antes de acceder a tu cuenta.
                 </p>
               </div>
 
               <div className="space-y-3">
                 <Button
-                  onClick={() => router.push(`/check-email?email=${encodeURIComponent(authUser.email || '')}`)}
+                  onClick={() =>
+                    router.push(
+                      `/check-email?email=${encodeURIComponent(authUser.email || "")}`,
+                    )
+                  }
                   className="w-full bg-coral hover:bg-coral/90 text-white font-marcellus"
                 >
                   <Mail className="w-4 h-4 mr-2" />
@@ -78,7 +93,7 @@ export function EmailVerificationGuard({ children }: EmailVerificationGuardProps
                 </Button>
 
                 <Button
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push("/login")}
                   variant="outline"
                   className="w-full font-marcellus"
                 >
@@ -94,4 +109,4 @@ export function EmailVerificationGuard({ children }: EmailVerificationGuardProps
 
   // User is verified, render children
   return <>{children}</>;
-} 
+}

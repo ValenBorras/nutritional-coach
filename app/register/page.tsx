@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { RoleSelector } from '../components/auth/role-selector';
-import { PatientForm } from '../components/auth/patient-form';
-import { NutritionistForm } from '../components/auth/nutritionist-form';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { PageTransition, FadeIn } from '../components/ui/page-transition';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { RoleSelector } from "../components/auth/role-selector";
+import { PatientForm } from "../components/auth/patient-form";
+import { NutritionistForm } from "../components/auth/nutritionist-form";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { PageTransition, FadeIn } from "../components/ui/page-transition";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface RegistrationData {
   email: string;
   password: string;
   name: string;
-  role: 'patient' | 'nutritionist';
+  role: "patient" | "nutritionist";
   nutritionistKey?: string;
   dietPhilosophy?: string;
   birthDate?: string;
@@ -31,44 +31,54 @@ interface RegistrationData {
 }
 
 export default function RegisterPage() {
-  const [selectedRole, setSelectedRole] = useState<'patient' | 'nutritionist' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<
+    "patient" | "nutritionist" | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (data: RegistrationData) => {
-    console.log('Iniciando proceso de registro...');
+    console.log("Iniciando proceso de registro...");
     setIsLoading(true);
-    
+
     try {
-      console.log('Enviando datos al servidor:', data);
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      console.log("Enviando datos al servidor:", data);
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       const responseData = await res.json();
-      console.log('Respuesta del servidor:', responseData);
+      console.log("Respuesta del servidor:", responseData);
 
       if (!res.ok) {
-        throw new Error(responseData.message || 'Error al registrar usuario');
+        throw new Error(responseData.message || "Error al registrar usuario");
       }
 
       // Show nutritionist key if it was generated
-      if (data.role === 'nutritionist' && responseData.nutritionistKey) {
-        toast.success('Tu clave de nutricionista es: ' + responseData.nutritionistKey, {
-          description: 'Guarda esta clave para compartirla con tus pacientes',
-          duration: 10000,
-        });
+      if (data.role === "nutritionist" && responseData.nutritionistKey) {
+        toast.success(
+          "Tu clave de nutricionista es: " + responseData.nutritionistKey,
+          {
+            description: "Guarda esta clave para compartirla con tus pacientes",
+            duration: 10000,
+          },
+        );
       } else {
-        toast.success('Registro exitoso - Revisa tu email para verificar tu cuenta');
+        toast.success(
+          "Registro exitoso - Revisa tu email para verificar tu cuenta",
+        );
       }
 
       // After successful registration, redirect to check email page
       router.push(`/check-email?email=${encodeURIComponent(data.email)}`);
     } catch (error) {
-      console.error('Error durante el registro:', error);
-      const message = error instanceof Error ? error.message : 'Ocurrió un error durante el registro';
+      console.error("Error durante el registro:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error durante el registro";
       toast.error(message);
       return Promise.reject(error);
     } finally {
@@ -79,7 +89,7 @@ export default function RegisterPage() {
   const slideVariants = {
     enter: { x: 50, opacity: 0 },
     center: { x: 0, opacity: 1 },
-    exit: { x: -50, opacity: 0 }
+    exit: { x: -50, opacity: 0 },
   };
 
   return (
@@ -97,7 +107,7 @@ export default function RegisterPage() {
             >
               <RoleSelector onSelect={setSelectedRole} />
             </motion.div>
-          ) : selectedRole === 'patient' ? (
+          ) : selectedRole === "patient" ? (
             <motion.div
               key="patient-form"
               variants={slideVariants}
@@ -124,4 +134,4 @@ export default function RegisterPage() {
       </FadeIn>
     </PageTransition>
   );
-} 
+}

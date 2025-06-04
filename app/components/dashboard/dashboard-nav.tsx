@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/hooks/use-auth';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LogoutButton } from '../auth/logout-button';
-import { cn } from '@/lib/utils';
+import { useAuth } from "@/hooks/use-auth";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LogoutButton } from "../auth/logout-button";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   {
-    name: 'Dashboard',
-    href: '/dashboard',
+    name: "Dashboard",
+    href: "/dashboard",
   },
   {
-    name: 'Nutrición',
-    href: '/dashboard/nutrition',
+    name: "Nutrición",
+    href: "/dashboard/nutrition",
   },
   {
-    name: 'Planes de Comidas',
-    href: '/dashboard/meal-plans',
+    name: "Planes de Comidas",
+    href: "/dashboard/meal-plans",
   },
 ];
 
@@ -34,8 +34,8 @@ export function DashboardNav() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-8">
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="text-2xl font-marcellus text-mist-white tracking-wide"
             >
               NutriGuide
@@ -46,10 +46,10 @@ export function DashboardNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'px-3 py-2 text-sm font-marcellus tracking-wide rounded-md transition-colors',
+                    "px-3 py-2 text-sm font-marcellus tracking-wide rounded-md transition-colors",
                     pathname === item.href
-                      ? 'bg-charcoal text-white'
-                      : 'text-mist-white hover:bg-charcoal/80 hover:text-white'
+                      ? "bg-charcoal text-white"
+                      : "text-mist-white hover:bg-charcoal/80 hover:text-white",
                   )}
                 >
                   {item.name}
@@ -67,4 +67,4 @@ export function DashboardNav() {
       </div>
     </nav>
   );
-} 
+}

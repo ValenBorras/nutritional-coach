@@ -25,6 +25,29 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    // Get user profile to determine user type
+    let userType = 'patient' // default
+    if (user?.id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single()
+      
+      if (profile?.user_type) {
+        userType = profile.user_type
+      }
+    }
+
+    console.log('🔍 Checkout session details:', {
+      userId: user?.id,
+      userEmail: user?.email,
+      userType,
+      priceId,
+      customAmount,
+      mode: priceId ? 'subscription' : 'payment'
+    })
+
     // Prepare line items
     const lineItems: Array<{
       price?: string
@@ -63,6 +86,18 @@ export async function POST(req: NextRequest) {
     // Determine the correct mode based on payment type
     const mode = priceId ? 'subscription' : 'payment'
 
+    // Enhanced metadata with user information
+    const enhancedMetadata = {
+      user_id: user?.id || 'anonymous',
+      user_type: userType,
+      user_email: user?.email || customerEmail || '',
+      source: 'embedded_checkout',
+      payment_type: mode,
+      ...metadata,
+    }
+
+    console.log('📋 Session metadata:', enhancedMetadata)
+
     // Create checkout session with embedded UI mode
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded', // 🔥 Key for embedded checkout
@@ -76,12 +111,7 @@ export async function POST(req: NextRequest) {
       customer_email: customerEmail || user?.email,
       
       // Metadata for tracking
-      metadata: {
-        user_id: user?.id || 'anonymous',
-        source: 'embedded_checkout',
-        payment_type: mode,
-        ...metadata,
-      },
+      metadata: enhancedMetadata,
 
       // Allow promotion codes
       allow_promotion_codes: true,
@@ -92,10 +122,7 @@ export async function POST(req: NextRequest) {
       // Additional configuration for subscriptions
       ...(mode === 'subscription' && {
         subscription_data: {
-          metadata: {
-            user_id: user?.id || 'anonymous',
-            ...metadata,
-          },
+          metadata: enhancedMetadata,
         },
       }),
     })

@@ -108,16 +108,34 @@ async function handleCheckoutCompleted(session: any, supabase: any) {
 
 // Manejar creación de suscripción
 async function handleSubscriptionCreated(subscription: any, supabase: any) {
-  console.log('Processing customer.subscription.created')
+  console.log('Processing customer.subscription.created', {
+    subscriptionId: subscription.id,
+    metadata: subscription.metadata,
+    items: subscription.items?.data
+  })
   
   const userId = subscription.metadata?.user_id
-  const userType = subscription.metadata?.user_type
-  const priceId = subscription.metadata?.price_id
+  const userType = subscription.metadata?.user_type || 'patient' // Default to patient
+  
+  // Get price_id from subscription items (this is more reliable)
+  const priceId = subscription.items?.data?.[0]?.price?.id
 
-  if (!userId || !userType || !priceId) {
-    console.error('Missing metadata in subscription')
+  if (!userId) {
+    console.error('Missing user_id in subscription metadata')
     return
   }
+
+  if (!priceId) {
+    console.error('Missing price_id in subscription items')
+    return
+  }
+
+  console.log('Creating subscription in database:', {
+    userId,
+    userType,
+    priceId,
+    subscriptionId: subscription.id
+  })
 
   const subscriptionData = {
     user_id: userId,
@@ -134,12 +152,34 @@ async function handleSubscriptionCreated(subscription: any, supabase: any) {
     canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('subscriptions')
     .upsert(subscriptionData, { onConflict: 'stripe_subscription_id' })
 
   if (error) {
     console.error('Error creating subscription:', error)
+  } else {
+    console.log('✅ Subscription created successfully in database')
+  }
+
+  // For patients with trials, also create trial record
+  if (userType === 'patient' && subscription.trial_end) {
+    const trialData = {
+      user_id: userId,
+      trial_start: new Date(subscription.trial_start! * 1000).toISOString(),
+      trial_end: new Date(subscription.trial_end * 1000).toISOString(),
+      trial_used: true,
+    }
+
+    const { error: trialError } = await supabase.from('patient_trials').upsert(trialData, {
+      onConflict: 'user_id'
+    })
+
+    if (trialError) {
+      console.error('Error creating patient trial:', trialError)
+    } else {
+      console.log('✅ Patient trial created successfully')
+    }
   }
 }
 

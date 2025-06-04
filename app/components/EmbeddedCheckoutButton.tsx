@@ -24,6 +24,8 @@ interface EmbeddedCheckoutButtonProps {
   buttonText?: string
   /** Button styling classes */
   className?: string
+  /** Callback when payment succeeds */
+  onSuccess?: () => void
   /** Callback when payment fails */
   onError?: (error: string) => void
 }
@@ -35,6 +37,7 @@ export default function EmbeddedCheckoutButton({
   metadata = {},
   buttonText = 'Pay Now',
   className = '',
+  onSuccess,
   onError
 }: EmbeddedCheckoutButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -97,6 +100,13 @@ export default function EmbeddedCheckoutButton({
     setError(null)
   }
 
+  // Handle successful payment
+  const handlePaymentSuccess = () => {
+    console.log('✅ Payment completed successfully')
+    setIsModalOpen(false)
+    onSuccess?.()
+  }
+
   // Default button styles
   const defaultButtonStyles = `
     inline-flex items-center justify-center gap-2 px-6 py-3 
@@ -126,21 +136,21 @@ export default function EmbeddedCheckoutButton({
         )}
       </button>
 
-      {/* Modal Overlay */}
+      {/* Modal Overlay - Exactly like the working one */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Dark Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={handleCloseModal}
           />
           
-          {/* Modal Content */}
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
+          {/* Modal Content - Centered and responsive */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Complete Your Payment
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Completar Pago
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -150,22 +160,22 @@ export default function EmbeddedCheckoutButton({
               </button>
             </div>
 
-            {/* Modal Body */}
+            {/* Modal Body - Scrollable */}
             <div className="flex-1 overflow-y-auto min-h-0">
-              <div className="p-4">
+              <div className="p-6">
                 {error ? (
                   /* Error State */
                   <div className="text-center py-8">
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
                       <h3 className="text-red-800 font-medium mb-2">
-                        Payment Error
+                        Error en el Pago
                       </h3>
-                      <p className="text-red-600 text-sm">{error}</p>
+                      <p className="text-red-600 text-sm mb-4">{error}</p>
                       <button
                         onClick={() => setError(null)}
-                        className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                       >
-                        Try Again
+                        Intentar de Nuevo
                       </button>
                     </div>
                   </div>
@@ -173,7 +183,10 @@ export default function EmbeddedCheckoutButton({
                   /* Embedded Checkout */
                   <EmbeddedCheckoutProvider
                     stripe={stripePromise}
-                    options={{ fetchClientSecret }}
+                    options={{ 
+                      fetchClientSecret,
+                      onComplete: handlePaymentSuccess
+                    }}
                   >
                     <EmbeddedCheckout />
                   </EmbeddedCheckoutProvider>

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
@@ -14,11 +13,11 @@ export async function POST(request: NextRequest) {
 
     console.log('🔄 Creating mock subscription for:', { userId, priceId, userType })
 
-    // Use regular client for read operations
-    const supabase = createClient()
+    // Use admin client for all operations to bypass RLS
+    const adminSupabase = createAdminClient()
     
     // First, let's check if this user already has a subscription
-    const { data: existingSub } = await supabase
+    const { data: existingSub } = await adminSupabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', userId)
@@ -32,7 +31,7 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    // Create a mock subscription using admin client to bypass RLS
+    // Create a mock subscription
     const mockSubscription = {
       user_id: userId,
       user_type: userType,
@@ -49,9 +48,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('📝 Mock subscription data:', mockSubscription)
-
-    // Create admin client for inserting data
-    const adminSupabase = createAdminClient()
 
     const { data, error } = await adminSupabase
       .from('subscriptions')

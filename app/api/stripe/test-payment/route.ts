@@ -40,8 +40,12 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error creating test payment intent:', error);
+    
+    // Properly handle unknown error type
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
     return NextResponse.json(
-      { error: 'Error interno del servidor', details: error.message },
+      { error: 'Error interno del servidor', details: errorMessage },
       { status: 500 }
     );
   }

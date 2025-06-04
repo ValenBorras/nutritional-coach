@@ -1,199 +1,224 @@
 "use client";
 
 import { useState } from 'react';
-import { EmbeddedCheckout } from '@/app/components/embedded-checkout';
-import { CheckoutModal } from '@/app/components/checkout-modal';
-import { Button } from '@/app/components/ui/button';
+import EmbeddedCheckoutButton from '@/app/components/EmbeddedCheckoutButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { Badge } from '@/app/components/ui/badge';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 
 export default function EmbeddedCheckoutDemo() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showInlineCheckout, setShowInlineCheckout] = useState(false);
+  const [customAmount, setCustomAmount] = useState<number>(2999); // $29.99 in cents
+  const [customerEmail, setCustomerEmail] = useState('');
 
-  // Mock plan data for testing
-  const mockPlan = {
-    priceId: "price_1234567890", // This would be a real Stripe price ID
-    planName: "Plan Paciente",
-    amount: 1299, // $12.99 in cents
-    currency: "usd",
-    interval: "month",
-    trialDays: 15,
-  };
+  // Real price IDs from your Stripe dashboard
+  const examplePrices = [
+    {
+      id: 'price_1RVDer4E1fMQUCHe1bi3YujU', // Your real price ID
+      name: 'NutriGuide Basic',
+      amount: 1299, // $12.99 - Real price from Stripe
+      currency: 'USD',
+      interval: 'month',
+      description: 'Essential nutrition guidance and AI chat'
+    },
+    {
+      id: 'price_1RVDcc4E1fMQUCHeI84G5DZV', // Your real price ID
+      name: 'NutriGuide Pro',
+      amount: 3999, // $39.99 - Real price from Stripe
+      currency: 'USD',
+      interval: 'month',
+      description: 'Advanced nutrition coaching with premium features'
+    },
+    {
+      id: 'price_1RVDaj4E1fMQUCHehmZgPtIt', // Your real price ID
+      name: 'NutriGuide Free Trial',
+      amount: 0, // Free - Real price from Stripe
+      currency: 'USD',
+      interval: 'month',
+      description: 'Try NutriGuide for free'
+    }
+  ];
 
-  const handleSuccess = () => {
-    alert("¡Suscripción exitosa! En producción esto actualizará la base de datos.");
-    setIsModalOpen(false);
-    setShowInlineCheckout(false);
+  const formatPrice = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount / 100);
   };
 
   return (
-    <div className="min-h-screen bg-mist-white p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-marcellus text-charcoal mb-2">
-            🧪 Demo: Checkout Embebido
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            🧪 Embedded Checkout Demo
           </h1>
-          <p className="text-charcoal/70">
-            Prueba el sistema de checkout integrado en la aplicación
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Test the Stripe embedded checkout functionality with different payment scenarios.
+            This page demonstrates how to integrate the payment system into your application.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Modal Checkout Demo */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl text-charcoal">
-                Checkout en Modal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-charcoal/70 text-sm">
-                El checkout se abre en un modal superpuesto, manteniendo el contexto de la aplicación.
-              </p>
-              
-              <div className="bg-coral/10 p-4 rounded-lg">
-                <h4 className="font-medium text-charcoal mb-2">Plan a Suscribir:</h4>
-                <div className="text-sm text-charcoal/70 space-y-1">
-                  <div>💳 {mockPlan.planName}</div>
-                  <div>💰 ${(mockPlan.amount / 100).toFixed(2)} USD/mes</div>
-                  <div>🎁 {mockPlan.trialDays} días de prueba gratis</div>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Predefined Products */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              📦 Predefined Products
+            </h2>
+            
+            {examplePrices.map((price) => (
+              <Card key={price.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl">{price.name}</CardTitle>
+                    <Badge variant="secondary" className="capitalize">
+                      {price.interval}
+                    </Badge>
+                  </div>
+                  <p className="text-gray-600">{price.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-3xl font-bold text-blue-600">
+                        {formatPrice(price.amount, price.currency)}
+                      </span>
+                      <span className="text-gray-500">/{price.interval}</span>
+                    </div>
+                    
+                    <EmbeddedCheckoutButton
+                      priceId={price.id}
+                      customerEmail={customerEmail}
+                      buttonText="Subscribe Now"
+                      metadata={{
+                        product_name: price.name,
+                        demo: 'true'
+                      }}
+                      onError={(error) => {
+                        console.error('❌ Payment failed:', error)
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Custom Amount */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              💰 Custom Amount
+            </h2>
+            
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle>One-time Payment</CardTitle>
+                <p className="text-gray-600">
+                  Test with any custom amount you specify
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="amount">Amount (in cents)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(Number(e.target.value))}
+                    placeholder="2999"
+                    min="50"
+                    step="1"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Current: {formatPrice(customAmount, 'USD')}
+                  </p>
                 </div>
-              </div>
 
-              <Button 
-                onClick={() => setIsModalOpen(true)}
-                className="w-full bg-coral hover:bg-coral/90"
-              >
-                Abrir Checkout Modal
-              </Button>
+                <div>
+                  <Label htmlFor="email">Customer Email (Optional)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="customer@example.com"
+                  />
+                </div>
 
-              <div className="text-xs text-charcoal/60">
-                ✨ <strong>Ventajas del Modal:</strong><br />
-                • No abandona la página<br />
-                • Mejor UX para cambios de plan<br />
-                • Fácil cancelación
-              </div>
-            </CardContent>
-          </Card>
+                <div className="pt-4">
+                  <EmbeddedCheckoutButton
+                    customAmount={customAmount}
+                    customerEmail={customerEmail}
+                    buttonText={`Pay ${formatPrice(customAmount, 'USD')}`}
+                    metadata={{
+                      payment_type: 'custom_amount',
+                      demo: 'true'
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                    onError={(error) => {
+                      console.error('❌ Custom payment failed:', error);
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Inline Checkout Demo */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl text-charcoal">
-                Checkout Inline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-charcoal/70 text-sm">
-                El checkout se muestra directamente en la página, ideal para flows dedicados.
-              </p>
-
-              <Button 
-                onClick={() => setShowInlineCheckout(!showInlineCheckout)}
-                variant="outline"
-                className="w-full border-coral text-coral hover:bg-coral hover:text-white"
-              >
-                {showInlineCheckout ? 'Ocultar' : 'Mostrar'} Checkout Inline
-              </Button>
-
-              <div className="text-xs text-charcoal/60">
-                ✨ <strong>Ventajas del Inline:</strong><br />
-                • Parte natural del flujo<br />
-                • Mejor para páginas de pricing<br />
-                • UX más directa
-              </div>
-            </CardContent>
-          </Card>
+            {/* Testing Info */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-blue-900">🧪 Testing Information</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-blue-800">
+                <div className="space-y-2">
+                  <p><strong>Test Card Numbers:</strong></p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li><code>4242 4242 4242 4242</code> - Successful payment</li>
+                    <li><code>4000 0000 0000 0002</code> - Card declined</li>
+                    <li><code>4000 0000 0000 9995</code> - Insufficient funds</li>
+                  </ul>
+                  <p className="mt-3">
+                    <strong>Expiry:</strong> Any future date (e.g., 12/25)
+                    <br />
+                    <strong>CVC:</strong> Any 3-digit number (e.g., 123)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Inline Checkout */}
-        {showInlineCheckout && (
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold text-charcoal mb-4 text-center">
-              Checkout Inline Demo
-            </h3>
-            <EmbeddedCheckout
-              priceId={mockPlan.priceId}
-              planName={mockPlan.planName}
-              amount={mockPlan.amount}
-              currency={mockPlan.currency}
-              interval={mockPlan.interval}
-              trialDays={mockPlan.trialDays}
-              onSuccess={handleSuccess}
-              onCancel={() => setShowInlineCheckout(false)}
-            />
-          </div>
-        )}
-
-        {/* Important Notes */}
-        <Card className="bg-blue-50 border-blue-200">
+        {/* Development Notes */}
+        <Card className="mt-8 bg-yellow-50 border-yellow-200">
           <CardHeader>
-            <CardTitle className="text-blue-900 text-lg">
-              📝 Notas Importantes
-            </CardTitle>
+            <CardTitle className="text-yellow-900">⚠️ Development Notes</CardTitle>
           </CardHeader>
-          <CardContent className="text-blue-800 text-sm space-y-2">
-            <div>
-              🔧 <strong>Para Testing Real:</strong> Necesitas agregar price IDs reales de Stripe
-            </div>
-            <div>
-              💳 <strong>Tarjetas de Prueba:</strong> 4242 4242 4242 4242 (Stripe test mode)
-            </div>
-            <div>
-              ⚠️ <strong>Este Demo:</strong> Mostrará un error porque no hay price IDs reales configurados
-            </div>
-            <div>
-              🚀 <strong>Producción:</strong> Una vez configurado Stripe, funcionará completamente
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Technical Implementation */}
-        <Card className="bg-sage-green/10 border-sage-green/30">
-          <CardHeader>
-            <CardTitle className="text-sage-green text-lg">
-              🛠️ Implementación Técnica
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-charcoal text-sm space-y-3">
-            <div>
-              <strong>Flujo de Pago:</strong>
-              <ol className="list-decimal list-inside mt-1 ml-4 space-y-1">
-                <li>Usuario selecciona plan</li>
-                <li>Se crea PaymentIntent en el servidor</li>
-                <li>Se muestra el formulario de Stripe Elements</li>
-                <li>Usuario ingresa datos de tarjeta</li>
-                <li>Se confirma el pago con Stripe</li>
-                <li>Webhook actualiza la base de datos</li>
-                <li>Usuario ve confirmación de éxito</li>
-              </ol>
-            </div>
-            
-            <div>
-              <strong>Componentes Usados:</strong>
-              <ul className="list-disc list-inside mt-1 ml-4 space-y-1">
-                <li><code>EmbeddedCheckout</code> - Formulario principal</li>
-                <li><code>CheckoutModal</code> - Wrapper modal</li>
-                <li><code>@stripe/stripe-js</code> - SDK de Stripe</li>
-                <li><code>@stripe/react-stripe-js</code> - Componentes React</li>
+          <CardContent className="text-sm text-yellow-800">
+            <div className="space-y-3">
+              <p>
+                <strong>Before using in production:</strong>
+              </p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Replace example price IDs with real ones from your Stripe Dashboard</li>
+                <li>Set up proper webhook handling for payment events</li>
+                <li>Configure your environment variables correctly</li>
+                <li>Test with various payment scenarios</li>
+                <li>Implement proper error logging and monitoring</li>
+              </ul>
+              
+              <p className="mt-4">
+                <strong>Files created:</strong>
+              </p>
+              <ul className="list-disc list-inside space-y-1 ml-4 font-mono text-xs">
+                <li>app/api/checkout_sessions/route.ts</li>
+                <li>components/EmbeddedCheckoutButton.tsx</li>
+                <li>app/checkout/return/page.tsx</li>
+                <li>app/demo/embedded-checkout/page.tsx</li>
               </ul>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Modal */}
-      <CheckoutModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        priceId={mockPlan.priceId}
-        planName={mockPlan.planName}
-        amount={mockPlan.amount}
-        currency={mockPlan.currency}
-        interval={mockPlan.interval}
-        trialDays={mockPlan.trialDays}
-        onSuccess={handleSuccess}
-      />
     </div>
   );
 } 

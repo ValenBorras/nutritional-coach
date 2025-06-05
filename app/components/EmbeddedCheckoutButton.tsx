@@ -11,6 +11,8 @@ import { X, CreditCard, Loader2 } from 'lucide-react'
 // Load Stripe outside of component to avoid recreating on every render
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
+console.log('🔍 Stripe publishable key:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 20) + '...')
+
 interface EmbeddedCheckoutButtonProps {
   /** Stripe Price ID (for existing products) */
   priceId?: string
@@ -50,6 +52,13 @@ export default function EmbeddedCheckoutButton({
       setIsLoading(true)
       setError(null)
 
+      console.log('🔄 Fetching client secret with:', {
+        priceId,
+        customAmount,
+        customerEmail,
+        metadata
+      })
+
       const response = await fetch('/api/checkout_sessions', {
         method: 'POST',
         headers: {
@@ -64,12 +73,17 @@ export default function EmbeddedCheckoutButton({
       })
 
       const data = await response.json()
+      console.log('📦 API Response:', data)
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session')
       }
 
-      console.log('✅ Checkout session created:', data.session_id)
+      if (!data.client_secret) {
+        throw new Error('No client_secret returned from API')
+      }
+
+      console.log('✅ Client secret obtained:', data.client_secret?.substring(0, 20) + '...')
       return data.client_secret
 
     } catch (err) {
@@ -86,6 +100,7 @@ export default function EmbeddedCheckoutButton({
   // Handle opening the checkout modal
   const handleOpenCheckout = async () => {
     try {
+      console.log('🚀 Opening checkout modal')
       setIsModalOpen(true)
       // The client secret will be fetched when EmbeddedCheckoutProvider mounts
     } catch (err) {
@@ -96,6 +111,7 @@ export default function EmbeddedCheckoutButton({
 
   // Handle closing the modal
   const handleCloseModal = () => {
+    console.log('❌ Closing checkout modal')
     setIsModalOpen(false)
     setError(null)
   }
@@ -181,15 +197,20 @@ export default function EmbeddedCheckoutButton({
                   </div>
                 ) : (
                   /* Embedded Checkout */
-                  <EmbeddedCheckoutProvider
-                    stripe={stripePromise}
-                    options={{ 
-                      fetchClientSecret,
-                      onComplete: handlePaymentSuccess
-                    }}
-                  >
-                    <EmbeddedCheckout />
-                  </EmbeddedCheckoutProvider>
+                  <div>
+                    <div className="text-center mb-4 text-sm text-gray-600">
+                      Cargando formulario de pago seguro...
+                    </div>
+                    <EmbeddedCheckoutProvider
+                      stripe={stripePromise}
+                      options={{ 
+                        fetchClientSecret,
+                        onComplete: handlePaymentSuccess
+                      }}
+                    >
+                      <EmbeddedCheckout />
+                    </EmbeddedCheckoutProvider>
+                  </div>
                 )}
               </div>
             </div>

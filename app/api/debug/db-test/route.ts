@@ -71,12 +71,6 @@ export async function GET(req: NextRequest) {
       code: trialError?.code
     })
     
-    // Test 3: Check table structure
-    const { data: tableInfo, error: tableError } = await supabaseServiceRole
-      .rpc('get_table_info', { table_name: 'subscriptions' })
-      .then(() => ({ data: 'RPC not available', error: null }))
-      .catch(() => ({ data: null, error: 'RPC not available' }))
-    
     // Cleanup test data
     if (!subError) {
       await supabaseServiceRole

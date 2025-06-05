@@ -58,6 +58,24 @@ export async function POST(req: NextRequest) {
 
       if (userId && priceId) {
         try {
+          // Validate that user exists before creating subscription
+          const { data: userExists, error: userCheckError } = await supabaseServiceRole
+            .from('profiles')
+            .select('id')
+            .eq('id', userId)
+            .single()
+
+          if (userCheckError || !userExists) {
+            console.error('❌ User not found in database:', { userId, error: userCheckError?.message })
+            return Response.json({ 
+              error: 'User validation failed', 
+              details: `User ${userId} not found in database`,
+              userCheckError: userCheckError?.message 
+            }, { status: 400 })
+          }
+
+          console.log('✅ User validated:', userId)
+
           // Simple subscription insert
           const { error } = await supabaseServiceRole
             .from('subscriptions')

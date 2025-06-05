@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     
     // Test 1: Try to insert a test subscription
     const testSubscriptionData = {
-      user_id: 'test-user-id-12345', // Fake user ID for testing
+      user_id: '03c33d4e-e753-4504-ab29-31bf7d0ea3c5', // User ID that already has working subscriptions
       user_type: 'patient',
       stripe_customer_id: 'cus_test_12345',
       stripe_subscription_id: 'sub_test_12345_' + Date.now(),
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     
     // Test 2: Try to insert a test trial
     const testTrialData = {
-      user_id: 'test-user-id-12345',
+      user_id: '03c33d4e-e753-4504-ab29-31bf7d0ea3c5', // User ID that already has working subscriptions
       trial_start: new Date().toISOString(),
       trial_end: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
       trial_used: true,
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       await supabaseServiceRole
         .from('patient_trials')
         .delete()
-        .eq('user_id', 'test-user-id-12345')
+        .eq('user_id', '03c33d4e-e753-4504-ab29-31bf7d0ea3c5')
     }
     
     return Response.json({

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     // Get recent users with their profiles
     const { data: users, error } = await supabaseServiceRole
       .from('profiles')
-      .select('id, email, first_name, role, created_at')
+      .select('id, created_at')
       .order('created_at', { ascending: false })
       .limit(10)
 

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     // Handle only subscription created for now
     if (event.type === 'customer.subscription.created') {
-      const subscription = event.data.object
+      const subscription = event.data.object as any // Cast to any to bypass TS strict checking
       console.log('Processing subscription created:', {
         id: subscription.id,
         status: subscription.status,

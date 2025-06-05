@@ -1,13 +1,38 @@
 import { NextRequest } from 'next/server'
 import { stripe } from '@/lib/stripe/config'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
+
+// Create a service role client specifically for webhooks with limited permissions
+const supabaseServiceRole = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 export async function POST(req: NextRequest) {
+  // 🔒 SECURITY LOGGING
+  const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  const userAgent = req.headers.get('user-agent') || 'unknown'
+  const timestamp = new Date().toISOString()
+  
+  console.log(`🔐 Webhook access attempt:`, {
+    timestamp,
+    ip: clientIP,
+    userAgent,
+    hasSignature: !!req.headers.get('stripe-signature')
+  })
+
   try {
     const body = await req.text()
     const signature = req.headers.get('stripe-signature')!
 
     if (!signature) {
+      console.warn(`⚠️ Webhook attempt without signature from IP: ${clientIP}`)
       return Response.json({ error: 'No signature found' }, { status: 400 })
     }
 
@@ -19,16 +44,17 @@ export async function POST(req: NextRequest) {
         process.env.STRIPE_WEBHOOK_SECRET!
       )
     } catch (error) {
-      console.error('Webhook signature verification failed:', error)
+      console.error(`🚨 Invalid webhook signature from IP: ${clientIP}`, error)
       return Response.json(
         { error: 'Webhook signature verification failed' },
         { status: 400 }
       )
     }
 
-    const supabase = await createClient()
+    console.log(`✅ Verified webhook: ${event.type} from IP: ${clientIP}`)
 
-    console.log(`Processing webhook: ${event.type}`)
+    // Use service role client with verified webhook context
+    const supabase = supabaseServiceRole
 
     switch (event.type) {
       case 'checkout.session.completed':
@@ -66,7 +92,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ received: true })
 
   } catch (error) {
-    console.error('Webhook error:', error)
+    console.error('💥 Webhook error:', error)
     return Response.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
@@ -106,80 +132,128 @@ async function handleCheckoutCompleted(session: any, supabase: any) {
   }
 }
 
-// Manejar creación de suscripción
+// Security validation helpers
+function validateUserId(userId: string): boolean {
+  // UUID v4 format validation
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(userId);
+}
+
+function validateUserType(userType: string): boolean {
+  return ['patient', 'nutritionist'].includes(userType);
+}
+
+function validatePriceId(priceId: string): boolean {
+  // Stripe price ID format validation
+  return typeof priceId === 'string' && priceId.startsWith('price_') && priceId.length > 10;
+}
+
+function sanitizeStripeData(data: any) {
+  return {
+    id: String(data.id || '').slice(0, 100),
+    status: String(data.status || '').slice(0, 50),
+    customer: String(data.customer || '').slice(0, 100),
+  };
+}
+
+// Manejar creación de suscripción con validaciones adicionales
 async function handleSubscriptionCreated(subscription: any, supabase: any) {
-  console.log('Processing customer.subscription.created', {
-    subscriptionId: subscription.id,
-    metadata: subscription.metadata,
-    items: subscription.items?.data
-  })
-  
-  const userId = subscription.metadata?.user_id
-  const userType = subscription.metadata?.user_type || 'patient' // Default to patient
-  
-  // Get price_id from subscription items (this is more reliable)
-  const priceId = subscription.items?.data?.[0]?.price?.id
-
-  if (!userId) {
-    console.error('Missing user_id in subscription metadata')
-    return
-  }
-
-  if (!priceId) {
-    console.error('Missing price_id in subscription items')
-    return
-  }
-
-  console.log('Creating subscription in database:', {
-    userId,
-    userType,
-    priceId,
-    subscriptionId: subscription.id
-  })
-
-  const subscriptionData = {
-    user_id: userId,
-    user_type: userType,
-    stripe_customer_id: subscription.customer,
-    stripe_subscription_id: subscription.id,
-    status: subscription.status,
-    price_id: priceId,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-    trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-    trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-    cancel_at_period_end: subscription.cancel_at_period_end,
-    canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
-  }
-
-  const { data, error } = await supabase
-    .from('subscriptions')
-    .upsert(subscriptionData, { onConflict: 'stripe_subscription_id' })
-
-  if (error) {
-    console.error('Error creating subscription:', error)
-  } else {
-    console.log('✅ Subscription created successfully in database')
-  }
-
-  // For patients with trials, also create trial record
-  if (userType === 'patient' && subscription.trial_end) {
-    const trialData = {
-      user_id: userId,
-      trial_start: new Date(subscription.trial_start! * 1000).toISOString(),
-      trial_end: new Date(subscription.trial_end * 1000).toISOString(),
-      trial_used: true,
-    }
-
-    const { error: trialError } = await supabase.from('patient_trials').upsert(trialData, {
-      onConflict: 'user_id'
+  try {
+    console.log('Processing customer.subscription.created', {
+      subscriptionId: subscription.id,
+      metadata: subscription.metadata,
+      items: subscription.items?.data
     })
+    
+    const userId = subscription.metadata?.user_id
+    const userType = subscription.metadata?.user_type || 'patient'
+    const priceId = subscription.items?.data?.[0]?.price?.id
 
-    if (trialError) {
-      console.error('Error creating patient trial:', trialError)
-    } else {
-      console.log('✅ Patient trial created successfully')
+    // 🔒 SECURITY VALIDATIONS
+    if (!userId || !validateUserId(userId)) {
+      throw new Error('Invalid user_id format')
     }
+
+    if (!validateUserType(userType)) {
+      throw new Error('Invalid user_type')
+    }
+
+    if (!priceId || !validatePriceId(priceId)) {
+      throw new Error('Invalid price_id format')
+    }
+
+    // 🧹 SANITIZE DATA
+    const sanitizedData = sanitizeStripeData(subscription);
+
+    console.log('✅ Validated data:', { userId, userType, priceId })
+
+    // Verify user exists in database before creating subscription
+    const { data: existingUser, error: userError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single()
+
+    if (userError || !existingUser) {
+      throw new Error(`User ${userId} not found in database`)
+    }
+
+    console.log('✅ User exists, creating subscription')
+
+    const subscriptionData = {
+      user_id: userId,
+      user_type: userType,
+      stripe_customer_id: sanitizedData.customer,
+      stripe_subscription_id: sanitizedData.id,
+      status: sanitizedData.status,
+      price_id: priceId,
+      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+      cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+      canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+    }
+
+    console.log('📝 Subscription data to insert:', subscriptionData)
+
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .upsert(subscriptionData, { onConflict: 'stripe_subscription_id' })
+
+    if (error) {
+      console.error('❌ Database error creating subscription:', error)
+      throw new Error(`Database error: ${error.message}`)
+    }
+
+    console.log('✅ Subscription created successfully')
+
+    // For patients with trials, also create trial record (with validation)
+    if (userType === 'patient' && subscription.trial_end) {
+      console.log('🎯 Creating trial record for patient')
+      
+      const trialData = {
+        user_id: userId,
+        trial_start: new Date(subscription.trial_start! * 1000).toISOString(),
+        trial_end: new Date(subscription.trial_end * 1000).toISOString(),
+        trial_used: true,
+        stripe_subscription_id: sanitizedData.id,
+      }
+
+      const { error: trialError } = await supabase.from('patient_trials').upsert(trialData, {
+        onConflict: 'user_id'
+      })
+
+      if (trialError) {
+        console.error('❌ Error creating patient trial:', trialError)
+      } else {
+        console.log('✅ Patient trial created successfully')
+      }
+    }
+
+  } catch (error) {
+    console.error('💥 Security violation or error in handleSubscriptionCreated:', error)
+    throw error
   }
 }
 

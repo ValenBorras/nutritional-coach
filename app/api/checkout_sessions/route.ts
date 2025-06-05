@@ -21,6 +21,17 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate priceId if provided (ensure it's not empty string)
+    const validPriceId = priceId && priceId.trim() !== '' ? priceId.trim() : null
+    const validCustomAmount = customAmount && customAmount > 0 ? customAmount : null
+
+    console.log('🔍 Validation results:', {
+      originalPriceId: priceId,
+      validPriceId,
+      originalCustomAmount: customAmount,
+      validCustomAmount
+    })
+
     // Get authenticated user (optional - can work without auth)
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -39,13 +50,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Determine the correct mode based on what we actually have
+    const mode = validPriceId ? 'subscription' : 'payment'
+
     console.log('🔍 Checkout session details:', {
       userId: user?.id,
       userEmail: user?.email,
       userType,
-      priceId,
-      customAmount,
-      mode: priceId ? 'subscription' : 'payment'
+      priceId: validPriceId,
+      customAmount: validCustomAmount,
+      mode
     })
 
     // Prepare line items
@@ -62,13 +76,13 @@ export async function POST(req: NextRequest) {
       }
     }> = []
 
-    if (priceId) {
+    if (validPriceId) {
       // Use existing price from Stripe
       lineItems.push({
-        price: priceId,
+        price: validPriceId,
         quantity: quantity,
       })
-    } else if (customAmount) {
+    } else if (validCustomAmount) {
       // Create custom line item
       lineItems.push({
         price_data: {
@@ -77,14 +91,16 @@ export async function POST(req: NextRequest) {
             name: 'NutriGuide Service',
             description: 'Nutrition guidance and AI chat service',
           },
-          unit_amount: customAmount, // Amount in cents
+          unit_amount: validCustomAmount, // Amount in cents
         },
         quantity: 1,
       })
+    } else {
+      return NextResponse.json(
+        { error: 'No valid priceId or customAmount provided' },
+        { status: 400 }
+      )
     }
-
-    // Determine the correct mode based on payment type
-    const mode = priceId ? 'subscription' : 'payment'
 
     // Enhanced metadata with user information
     const enhancedMetadata = {

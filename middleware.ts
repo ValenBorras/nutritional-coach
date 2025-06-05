@@ -13,9 +13,10 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder files
+     * - api/stripe/webhooks (Stripe webhooks should not go through auth middleware)
      * Exclude specific API routes that should NOT run through this middleware (e.g. public API routes)
      * if needed, using negative lookaheads: /api/(?!public-route).*
      */
-    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|manifest.json|sw.js|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff|woff2|ttf|eot)$).*)',
+    '/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico|manifest.json|sw.js|icons/|api/stripe/webhooks|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff|woff2|ttf|eot)$).*)',
   ],
 } 

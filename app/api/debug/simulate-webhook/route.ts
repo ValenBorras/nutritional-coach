@@ -1,123 +1,157 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { NextRequest } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-export async function POST(request: NextRequest) {
+// Use service role client for webhooks
+const supabaseServiceRole = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
+export async function POST(req: NextRequest) {
   try {
-    console.log('🚀 Simulating Stripe webhook event...')
+    console.log('🧪 Simulating webhook customer.subscription.created')
     
-    const adminSupabase = createAdminClient()
-    
-    // Simular un evento de customer.subscription.created
-    const mockSubscriptionEvent = {
-      id: `sub_mock_webhook_${Date.now()}`,
-      customer: `cus_mock_webhook_${Date.now()}`,
+    // Simulate the exact data structure from Stripe webhook
+    const mockSubscription = {
+      id: 'sub_test_' + Date.now(),
+      customer: 'cus_test_' + Date.now(),
       status: 'trialing',
+      current_period_start: Math.floor(Date.now() / 1000),
+      current_period_end: Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000),
+      trial_start: Math.floor(Date.now() / 1000),
+      trial_end: Math.floor((Date.now() + 15 * 24 * 60 * 60 * 1000) / 1000),
+      cancel_at_period_end: false,
+      canceled_at: null,
+      metadata: {
+        user_id: 'user_test_id_from_request', // We'll get this from request
+        user_type: 'patient'
+      },
       items: {
         data: [
           {
             price: {
-              id: 'price_1RVDer4E1fMQUCHe1bi3YujU' // Patient plan
+              id: 'price_1RVDer4E1fMQUCHe1bi3YujU'
             }
           }
         ]
-      },
-      metadata: {
-        user_id: '03c33d4e-e753-4504-ab29-31bf7d0ea3c5', // joaco@gmail.com
-        user_type: 'patient',
-        user_email: 'joaco@gmail.com',
-        source: 'simulated_webhook'
-      },
-      current_period_start: Math.floor(Date.now() / 1000),
-      current_period_end: Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000), // +30 days
-      trial_start: Math.floor(Date.now() / 1000),
-      trial_end: Math.floor((Date.now() + 15 * 24 * 60 * 60 * 1000) / 1000), // +15 days
-      cancel_at_period_end: false,
-      canceled_at: null
-    }
-
-    console.log('📝 Processing simulated subscription:', {
-      subscriptionId: mockSubscriptionEvent.id,
-      userId: mockSubscriptionEvent.metadata.user_id,
-      userType: mockSubscriptionEvent.metadata.user_type,
-      priceId: mockSubscriptionEvent.items.data[0].price.id
-    })
-
-    // Crear suscripción en la base de datos (igual que el webhook real)
-    const subscriptionData = {
-      user_id: mockSubscriptionEvent.metadata.user_id,
-      user_type: mockSubscriptionEvent.metadata.user_type,
-      stripe_customer_id: mockSubscriptionEvent.customer,
-      stripe_subscription_id: mockSubscriptionEvent.id,
-      status: mockSubscriptionEvent.status,
-      price_id: mockSubscriptionEvent.items.data[0].price.id,
-      current_period_start: new Date(mockSubscriptionEvent.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(mockSubscriptionEvent.current_period_end * 1000).toISOString(),
-      trial_start: new Date(mockSubscriptionEvent.trial_start * 1000).toISOString(),
-      trial_end: new Date(mockSubscriptionEvent.trial_end * 1000).toISOString(),
-      cancel_at_period_end: mockSubscriptionEvent.cancel_at_period_end,
-      canceled_at: null,
-    }
-
-    console.log('💾 Inserting subscription data:', subscriptionData)
-
-    const { data: subscription, error: subError } = await adminSupabase
-      .from('subscriptions')
-      .upsert(subscriptionData, { onConflict: 'stripe_subscription_id' })
-      .select()
-      .single()
-
-    if (subError) {
-      console.error('❌ Subscription error:', subError)
-      throw new Error(`Subscription insert failed: ${subError.message}`)
-    }
-
-    console.log('✅ Subscription created via webhook simulation')
-
-    // Crear trial para paciente
-    const trialData = {
-      user_id: mockSubscriptionEvent.metadata.user_id,
-      trial_start: new Date(mockSubscriptionEvent.trial_start * 1000).toISOString(),
-      trial_end: new Date(mockSubscriptionEvent.trial_end * 1000).toISOString(),
-      trial_used: true,
-      stripe_subscription_id: mockSubscriptionEvent.id,
-    }
-
-    console.log('💾 Inserting trial data:', trialData)
-
-    const { data: trial, error: trialError } = await adminSupabase
-      .from('patient_trials')
-      .upsert(trialData, { onConflict: 'user_id' })
-      .select()
-      .single()
-
-    if (trialError) {
-      console.error('❌ Trial error:', trialError)
-      // No throw, trial is optional
-    } else {
-      console.log('✅ Trial created via webhook simulation')
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Webhook simulation completed successfully',
-      subscription: subscription,
-      trial: trial || null,
-      webhook_event: {
-        type: 'customer.subscription.created',
-        subscription_id: mockSubscriptionEvent.id,
-        user_id: mockSubscriptionEvent.metadata.user_id,
-        user_type: mockSubscriptionEvent.metadata.user_type
       }
+    }
+
+    const { user_id } = await req.json()
+    
+    if (!user_id) {
+      return Response.json({ error: 'user_id required in body' }, { status: 400 })
+    }
+
+    // Update mock data with real user ID
+    mockSubscription.metadata.user_id = user_id
+
+    console.log('📝 Mock subscription data:', mockSubscription)
+
+    // Call the same handler as the real webhook
+    await handleSubscriptionCreated(mockSubscription, supabaseServiceRole)
+
+    return Response.json({ 
+      success: true, 
+      message: 'Webhook simulation completed',
+      mockSubscription 
     })
 
   } catch (error) {
-    console.error('❌ Webhook simulation error:', error)
-    return NextResponse.json(
-      { 
-        error: 'Webhook simulation failed', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
-      },
-      { status: 500 }
-    )
+    console.error('🚨 Webhook simulation failed:', error)
+    return Response.json({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined 
+    }, { status: 500 })
+  }
+}
+
+// Copy the exact handler from webhook
+async function handleSubscriptionCreated(subscription: any, supabase: any) {
+  try {
+    console.log('Processing customer.subscription.created', {
+      subscriptionId: subscription.id,
+      metadata: subscription.metadata,
+      hasItems: !!subscription.items?.data?.length
+    })
+    
+    const userId = subscription.metadata?.user_id
+    const userType = subscription.metadata?.user_type || 'patient'
+    const priceId = subscription.items?.data?.[0]?.price?.id
+
+    console.log('Extracted data:', { userId, userType, priceId })
+
+    if (!userId) {
+      console.error('❌ Missing user_id in subscription metadata')
+      throw new Error('Missing user_id in subscription metadata')
+    }
+
+    if (!priceId) {
+      console.error('❌ Missing price_id in subscription items')
+      throw new Error('Missing price_id in subscription items')
+    }
+
+    console.log('✅ Creating subscription in database')
+
+    const subscriptionData = {
+      user_id: userId,
+      user_type: userType,
+      stripe_customer_id: subscription.customer,
+      stripe_subscription_id: subscription.id,
+      status: subscription.status,
+      price_id: priceId,
+      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+      cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
+      canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+    }
+
+    console.log('📝 Subscription data to insert:', subscriptionData)
+
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .upsert(subscriptionData, { onConflict: 'stripe_subscription_id' })
+
+    if (error) {
+      console.error('❌ Database error creating subscription:', error)
+      throw new Error(`Database error: ${error.message}`)
+    }
+
+    console.log('✅ Subscription created successfully')
+
+    // For patients with trials, also create trial record
+    if (userType === 'patient' && subscription.trial_end) {
+      console.log('🎯 Creating trial record for patient')
+      
+      const trialData = {
+        user_id: userId,
+        trial_start: new Date(subscription.trial_start! * 1000).toISOString(),
+        trial_end: new Date(subscription.trial_end * 1000).toISOString(),
+        trial_used: true,
+        stripe_subscription_id: subscription.id,
+      }
+
+      const { error: trialError } = await supabase.from('patient_trials').upsert(trialData, {
+        onConflict: 'user_id'
+      })
+
+      if (trialError) {
+        console.error('❌ Error creating patient trial:', trialError)
+      } else {
+        console.log('✅ Patient trial created successfully')
+      }
+    }
+
+  } catch (error) {
+    console.error('💥 Error in handleSubscriptionCreated:', error)
+    throw error
   }
 } 

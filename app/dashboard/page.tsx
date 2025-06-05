@@ -12,6 +12,7 @@ import DashboardLayout from "@/app/components/dashboard-layout";
 import NutritionChatbot from "@/app/components/nutrition-chatbot-v2";
 import GeneratePatientKey from "@/app/components/generate-patient-key";
 import ConnectNutritionist from "@/app/components/connect-nutritionist";
+import { TrialBanner } from "@/app/components/TrialBanner";
 import { Calendar, MessageSquare, Activity, Users, Bot } from "lucide-react";
 import {
   PageTransition,
@@ -147,6 +148,8 @@ export default function Dashboard() {
             </motion.p>
           </div>
         </FadeIn>
+
+        {isPatient && <TrialBanner />}
 
         <StaggerContainer staggerChildren={0.15} className="space-y-6">
           {/* Quick Stats Cards */}

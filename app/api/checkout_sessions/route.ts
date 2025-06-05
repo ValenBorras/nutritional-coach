@@ -32,30 +32,48 @@ export async function POST(req: NextRequest) {
       validCustomAmount
     })
 
-    // Get authenticated user (optional - can work without auth)
+    // Get authenticated user (REQUIRED for checkout)
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    // Get user profile to determine user type
-    let userType = 'patient' // default
-    if (user?.id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', user.id)
-        .single()
-      
-      if (profile?.user_type) {
-        userType = profile.user_type
-      }
+    if (!user || authError) {
+      console.error('❌ User not authenticated:', authError?.message)
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in to continue.' },
+        { status: 401 }
+      )
     }
+
+    console.log('✅ User authenticated:', { userId: user.id, email: user.email })
+
+    // Get user profile to determine user type AND verify user exists in our system
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, user_id')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (profileError || !profile) {
+      console.error('❌ User profile not found:', profileError?.message)
+      return NextResponse.json(
+        { 
+          error: 'User profile not found. Please complete your registration first.',
+          details: profileError?.message 
+        },
+        { status: 400 }
+      )
+    }
+
+    // For now, default to 'patient' since we don't have user_type column yet
+    const userType = 'patient' // Will be updated when user_type column is added
+    console.log('✅ User profile found:', { userId: user.id, profileId: profile.id, userType })
 
     // Determine the correct mode based on what we actually have
     const mode = validPriceId ? 'subscription' : 'payment'
 
     console.log('🔍 Checkout session details:', {
-      userId: user?.id,
-      userEmail: user?.email,
+      userId: user.id,
+      userEmail: user.email,
       userType,
       priceId: validPriceId,
       customAmount: validCustomAmount,
@@ -102,11 +120,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Enhanced metadata with user information
+    // Enhanced metadata with VERIFIED user information
     const enhancedMetadata = {
-      user_id: user?.id || 'anonymous',
+      user_id: user.id, // GUARANTEED to exist in profiles table
       user_type: userType,
-      user_email: user?.email || customerEmail || '',
+      user_email: user.email,
       source: 'embedded_checkout',
       payment_type: mode,
       ...metadata,
@@ -123,8 +141,8 @@ export async function POST(req: NextRequest) {
       // Return URL with dynamic session_id parameter
       return_url: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       
-      // Optional: Customer information
-      customer_email: customerEmail || user?.email,
+      // Customer information (required since user is authenticated)
+      customer_email: user.email,
       
       // Metadata for tracking
       metadata: enhancedMetadata,

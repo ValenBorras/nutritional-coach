@@ -8,6 +8,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { PageTransition, FadeIn } from "@/app/components/ui/page-transition";
 import EmbeddedCheckoutButton from "@/app/components/EmbeddedCheckoutButton";
+import { SubscriptionStatusCard } from "@/app/components/SubscriptionStatusCard";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { 
@@ -106,6 +107,29 @@ export default function BillingPage() {
   } = useSubscription();
   
   const [portalLoading, setPortalLoading] = useState(false);
+
+  // Add authentication check
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center space-y-4">
+            <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto" />
+            <div>
+              <h2 className="text-xl font-semibold text-charcoal">Autenticación Requerida</h2>
+              <p className="text-charcoal/70">Por favor, inicia sesión para acceder a los planes de suscripción.</p>
+            </div>
+            <Button 
+              onClick={() => window.location.href = '/login'}
+              className="bg-coral hover:bg-coral/90 text-white"
+            >
+              Iniciar Sesión
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const formatPriceLocal = (amount: number) => {
     return (amount / 100).toFixed(2);
@@ -262,103 +286,7 @@ export default function BillingPage() {
             )}
 
             {/* Current Subscription Status */}
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-coral" />
-                  Estado de tu Suscripción
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon()}
-                    <div>
-                      <p className="font-medium text-charcoal">
-                        {hasActiveAccess ? "Acceso Activo" : "Sin Suscripción"}
-                      </p>
-                      <Badge className={getStatusColor()}>
-                        {subscriptionStatusText || "No suscrito"}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  {hasActiveAccess && currentPlan && (
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-charcoal">
-                        ${formatPriceLocal(currentPlan.amount)}
-                      </p>
-                      <p className="text-sm text-charcoal/60">por mes</p>
-                    </div>
-                  )}
-                </div>
-
-                {subscription && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-charcoal/60" />
-                      <div>
-                        <p className="text-sm text-charcoal/60">Próxima facturación</p>
-                        <p className="font-medium text-charcoal">
-                          {formatDate(subscription.current_period_end)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-charcoal/60" />
-                      <div>
-                        <p className="text-sm text-charcoal/60">Iniciada el</p>
-                        <p className="font-medium text-charcoal">
-                          {formatDate(subscription.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isTrialActive && (
-                  <Alert className="border-blue-200 bg-blue-50">
-                    <Gift className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-800">
-                      <strong>¡Período de prueba activo!</strong> Te quedan {trialDaysRemaining} días gratis.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {subscription?.cancel_at_period_end && (
-                  <Alert className="border-yellow-200 bg-yellow-50">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
-                    <AlertDescription className="text-yellow-800">
-                      Tu suscripción se cancelará el {formatDate(subscription.current_period_end)}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Customer Portal Button */}
-                {isCurrentlySubscribed && (
-                  <div className="pt-4 border-t">
-                    <Button
-                      onClick={handleOpenCustomerPortal}
-                      disabled={portalLoading}
-                      className="bg-coral hover:bg-coral/90 text-white w-full md:w-auto"
-                    >
-                      {portalLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Cargando...
-                        </>
-                      ) : (
-                        <>
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Gestionar Suscripción
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <SubscriptionStatusCard />
 
             {/* Current Plan Display */}
             {currentPlan && (

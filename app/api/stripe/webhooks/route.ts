@@ -58,23 +58,40 @@ export async function POST(req: NextRequest) {
 
       if (userId && priceId) {
         try {
-          // Validate that user exists before creating subscription
-          const { data: userExists, error: userCheckError } = await supabaseServiceRole
+          // More robust user validation - don't use .single()
+          const { data: userProfiles, error: userCheckError } = await supabaseServiceRole
             .from('profiles')
-            .select('id')
-            .eq('id', userId)
-            .single()
+            .select('id, user_id') // Remove user_type since it doesn't exist in profiles
+            .eq('user_id', userId) // Search by user_id (auth user ID)
 
-          if (userCheckError || !userExists) {
-            console.error('❌ User not found in database:', { userId, error: userCheckError?.message })
+          if (userCheckError) {
+            console.error('❌ Database query error:', userCheckError.message)
+            return Response.json({ 
+              error: 'Database query failed', 
+              details: userCheckError.message 
+            }, { status: 500 })
+          }
+
+          if (!userProfiles || userProfiles.length === 0) {
+            console.error('❌ User profile not found:', { userId })
             return Response.json({ 
               error: 'User validation failed', 
-              details: `User ${userId} not found in database`,
-              userCheckError: userCheckError?.message 
+              details: `User ${userId} not found in profiles database`
             }, { status: 400 })
           }
 
-          console.log('✅ User validated:', userId)
+          // If multiple profiles (shouldn't happen but handle gracefully)
+          if (userProfiles.length > 1) {
+            console.warn('⚠️ Multiple profiles found for user:', { userId, count: userProfiles.length })
+            // Use the first one but log the issue
+          }
+
+          const userProfile = userProfiles[0]
+          console.log('✅ User profile validated:', { 
+            authUserId: userId, 
+            profileId: userProfile.id,
+            profileCount: userProfiles.length 
+          })
 
           // Simple subscription insert
           const { error } = await supabaseServiceRole

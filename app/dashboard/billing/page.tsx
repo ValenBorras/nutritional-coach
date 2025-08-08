@@ -8,7 +8,6 @@ import { Badge } from "@/app/components/ui/badge";
 import { Alert, AlertDescription } from "@/app/components/ui/alert";
 import { PageTransition, FadeIn } from "@/app/components/ui/page-transition";
 import EmbeddedCheckoutButton from "@/app/components/EmbeddedCheckoutButton";
-import { SubscriptionStatusCard } from "@/app/components/SubscriptionStatusCard";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { 
@@ -103,6 +102,7 @@ export default function BillingPage() {
     subscriptionStatusText,
     formatPrice,
     createCustomerPortalSession,
+    cancelSubscription,
     refetch,
   } = useSubscription();
   
@@ -173,7 +173,9 @@ export default function BillingPage() {
     } else if (isNutritionist) {
       // Filtrar el plan actual si ya está suscrito
       const currentPriceId = subscription?.price_id;
-      return NUTRITIONIST_PLANS.filter(plan => plan.id !== currentPriceId);
+      const list = NUTRITIONIST_PLANS.filter(plan => plan.id !== currentPriceId);
+      // Si ya hay suscripción activa, no mostrar botones para comprar otro plan igual
+      return list;
     }
     return [];
   };
@@ -285,8 +287,6 @@ export default function BillingPage() {
               </Alert>
             )}
 
-            {/* Current Subscription Status */}
-            <SubscriptionStatusCard />
 
             {/* Current Plan Display */}
             {currentPlan && (
@@ -297,7 +297,7 @@ export default function BillingPage() {
                       <Crown className="w-5 h-5 text-green-600" />
                       <CardTitle className="text-lg text-green-800">Plan Actual</CardTitle>
                     </div>
-                    <Badge className="bg-green-600 text-white">Activo</Badge>
+                    <Badge className="bg-green-600 text-white">{subscription?.status === 'trialing' ? 'Trial' : 'Activo'}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -310,6 +310,37 @@ export default function BillingPage() {
                     <p className="text-sm text-green-600">
                       🎉 ¡Tienes acceso completo a todas las funciones de este plan!
                     </p>
+                    {subscription?.current_period_end && (
+                      <p className="text-sm text-green-700">
+                        Renueva el {formatDate(subscription.current_period_end)}
+                      </p>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                      <Button 
+                        variant="outline" 
+                        className="border-coral text-coral hover:bg-coral hover:text-white"
+                        onClick={handleOpenCustomerPortal}
+                        disabled={portalLoading}
+                      >
+                        {portalLoading ? 'Abriendo portal...' : 'Gestionar en Stripe'}
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="border-red-300 text-red-600 hover:bg-red-600 hover:text-white"
+                        onClick={async () => {
+                          try {
+                            await cancelSubscription();
+                            alert('La suscripción se cancelará al final del período.');
+                            refetch();
+                          } catch (e) {
+                            alert(e instanceof Error ? e.message : 'Error al cancelar');
+                          }
+                        }}
+                      >
+                        Cancelar al final del período
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -408,44 +439,71 @@ export default function BillingPage() {
                             </Alert>
                           )}
 
-                          {/* Subscribe Button */}
+                          {/* Subscribe/Manage Button */}
                           <div className="pt-2">
-                            {plan.isFree ? (
-                              <Button
-                                disabled
-                                className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl"
-                              >
-                                Plan Actual (Gratuito)
-                              </Button>
-                            ) : (
-                              <EmbeddedCheckoutButton
-                                priceId={plan.id}
-                                customerEmail={user?.email || undefined}
-                                buttonText={
-                                  isPatient 
-                                    ? `Comenzar Prueba Gratuita de ${plan.trial_days} Días`
-                                    : isCurrentlySubscribed 
-                                    ? `Cambiar a ${plan.name} ($${formatPriceLocal(plan.amount)}/mes)`
-                                    : `Suscribirse por $${formatPriceLocal(plan.amount)}/mes`
+                            {(() => {
+                              const isCurrentPlan = subscription?.price_id === plan.id
+                              if (plan.isFree) {
+                                if (isCurrentlySubscribed) {
+                                  return (
+                                    <Button 
+                                      variant="outline" 
+                                      className="w-full border-coral text-coral hover:bg-coral hover:text-white"
+                                      onClick={handleOpenCustomerPortal}
+                                    >
+                                      Cambiar plan en el portal
+                                    </Button>
+                                  )
                                 }
-                                className={`w-full font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                                  plan.popular
-                                    ? 'bg-gradient-to-r from-coral to-coral/90 hover:from-coral/90 hover:to-coral text-white'
-                                    : 'bg-gradient-to-r from-sage-green to-sage-green/90 hover:from-sage-green/90 hover:to-sage-green text-white'
-                                }`}
-                                metadata={{
-                                  plan_name: plan.name,
-                                  user_type: user?.role || 'patient',
-                                  source: 'dashboard_billing',
-                                  ...(isPatient && plan.trial_days && { trial_days: plan.trial_days.toString() })
-                                }}
-                                onSuccess={handleSubscriptionSuccess}
-                                onError={(error) => {
-                                  console.error('Subscription error:', error);
-                                  alert(`Error al iniciar suscripción: ${error}`);
-                                }}
-                              />
-                            )}
+                                return (
+                                  <Button disabled className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl">
+                                    Plan Actual (Gratuito)
+                                  </Button>
+                                )
+                              }
+                              if (isCurrentPlan) {
+                                return (
+                                  <Button disabled className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl">
+                                    Plan Actual
+                                  </Button>
+                                )
+                              }
+                              if (isCurrentlySubscribed) {
+                                return (
+                                  <Button 
+                                    variant="outline" 
+                                    className="w-full border-coral text-coral hover:bg-coral hover:text-white"
+                                    onClick={handleOpenCustomerPortal}
+                                  >
+                                    Cambiar plan en el portal
+                                  </Button>
+                                )
+                              }
+                              return (
+                                <EmbeddedCheckoutButton
+                                  priceId={plan.id}
+                                  customerEmail={user?.email || undefined}
+                                  buttonText={
+                                    isPatient 
+                                      ? `Comenzar Prueba Gratuita de ${plan.trial_days} Días`
+                                      : `Suscribirse por $${formatPriceLocal(plan.amount)}/mes`
+                                  }
+                                  className={`w-full font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                                    plan.popular
+                                      ? 'bg-gradient-to-r from-coral to-coral/90 hover:from-coral/90 hover:to-coral text-white'
+                                      : 'bg-gradient-to-r from-sage-green to-sage-green/90 hover:from-sage-green/90 hover:to-sage-green text-white'
+                                  }`}
+                                  onError={(msg) => alert(msg)}
+                                  metadata={{
+                                    plan_name: plan.name,
+                                    user_type: user?.role || 'patient',
+                                    source: 'dashboard_billing',
+                                    ...(isPatient && plan.trial_days && { trial_days: plan.trial_days.toString() })
+                                  }}
+                                  onSuccess={handleSubscriptionSuccess}
+                                />
+                              )
+                            })()}
                           </div>
 
                           {/* Trust badges */}

@@ -46,27 +46,18 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ User authenticated:', { userId: user.id, email: user.email })
 
-    // Get user profile to determine user type AND verify user exists in our system
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, user_id')
-      .eq('user_id', user.id)
-      .single()
-    
-    if (profileError || !profile) {
-      console.error('❌ User profile not found:', profileError?.message)
-      return NextResponse.json(
-        { 
-          error: 'User profile not found. Please complete your registration first.',
-          details: profileError?.message 
-        },
-        { status: 400 }
-      )
+    // Determine user type based on price (nutritionist/patient) if using subscription
+    let userType: 'patient' | 'nutritionist' = 'patient'
+    if (validPriceId) {
+      const { data: priceRow } = await supabase
+        .from('prices')
+        .select('user_type')
+        .eq('id', validPriceId)
+        .eq('active', true)
+        .maybeSingle()
+      if (priceRow?.user_type === 'nutritionist') userType = 'nutritionist'
     }
-
-    // For now, default to 'patient' since we don't have user_type column yet
-    const userType = 'patient' // Will be updated when user_type column is added
-    console.log('✅ User profile found:', { userId: user.id, profileId: profile.id, userType })
+    console.log('✅ Proceeding checkout for', { userId: user.id, userType, priceId: validPriceId })
 
     // Determine the correct mode based on what we actually have
     const mode = validPriceId ? 'subscription' : 'payment'
@@ -79,6 +70,30 @@ export async function POST(req: NextRequest) {
       customAmount: validCustomAmount,
       mode
     })
+
+    // Prevent duplicate/parallel subscriptions
+    const ACTIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete']
+    const { data: existingSubs } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('status', ACTIVE_STATUSES)
+      .order('updated_at', { ascending: false })
+
+    const currentSub = existingSubs?.[0]
+    if (currentSub) {
+      // If the user already has an active (or similar) subscription, block new checkout
+      if (validPriceId && currentSub.price_id === validPriceId) {
+        return NextResponse.json(
+          { error: 'Ya tienes este plan activo. Gestiona tu suscripción desde el portal.' },
+          { status: 409 }
+        )
+      }
+      return NextResponse.json(
+        { error: 'Ya tienes una suscripción activa. Usa el portal para cambiar de plan.' },
+        { status: 409 }
+      )
+    }
 
     // Prepare line items
     const lineItems: Array<{

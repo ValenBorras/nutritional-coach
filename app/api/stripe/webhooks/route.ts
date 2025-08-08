@@ -38,116 +38,105 @@ export async function POST(req: NextRequest) {
 
     console.log(`✅ Verified webhook: ${event.type}`)
 
-    // Handle only subscription created for now
-    if (event.type === 'customer.subscription.created') {
-      const subscription = event.data.object as any // Cast to any to bypass TS strict checking
-      console.log('Processing subscription created:', {
-        id: subscription.id,
-        status: subscription.status,
-        customer: subscription.customer,
-        metadata: subscription.metadata,
-        items: subscription.items?.data?.length || 0
-      })
+    // Helper: persist subscription to Supabase
+    function normalizeStatus(status: string): string {
+      const s = (status || '').toLowerCase()
+      const allowed = new Set([
+        'active', 'trialing', 'past_due', 'canceled', 'inactive',
+        'incomplete', 'incomplete_expired', 'unpaid', 'paused'
+      ])
+      if (allowed.has(s)) return s
+      // Map uncommon statuses to closest supported ones if DB has strict CHECK
+      if (s === 'incomplete' || s === 'incomplete_expired' || s === 'paused') return 'inactive'
+      if (s === 'unpaid') return 'past_due'
+      return 'inactive'
+    }
+    async function upsertSubscriptionFromStripe(sub: any) {
+      const userId = sub.metadata?.user_id
+      const userType = (sub.metadata?.user_type as string) || 'patient'
+      const priceId = sub.items?.data?.[0]?.price?.id
 
-      // Extract basic data
-      const userId = subscription.metadata?.user_id
-      const userType = subscription.metadata?.user_type || 'patient'
-      const priceId = subscription.items?.data?.[0]?.price?.id
+      // Period dates: API 2025 may not include top-level current_period_start/end
+      const item = sub.items?.data?.[0]
+      const periodStartUnix: number | null = (sub.current_period_start ?? item?.current_period_start) ?? null
+      const periodEndUnix: number | null = (sub.current_period_end ?? item?.current_period_end) ?? null
 
-      console.log('Webhook data:', { userId, userType, priceId })
-
-      if (userId && priceId) {
-        try {
-          // More robust user validation - don't use .single()
-          const { data: userProfiles, error: userCheckError } = await supabaseServiceRole
-            .from('profiles')
-            .select('id, user_id') // Remove user_type since it doesn't exist in profiles
-            .eq('user_id', userId) // Search by user_id (auth user ID)
-
-          if (userCheckError) {
-            console.error('❌ Database query error:', userCheckError.message)
-            return Response.json({ 
-              error: 'Database query failed', 
-              details: userCheckError.message 
-            }, { status: 500 })
-          }
-
-          if (!userProfiles || userProfiles.length === 0) {
-            console.error('❌ User profile not found:', { userId })
-            return Response.json({ 
-              error: 'User validation failed', 
-              details: `User ${userId} not found in profiles database`
-            }, { status: 400 })
-          }
-
-          // If multiple profiles (shouldn't happen but handle gracefully)
-          if (userProfiles.length > 1) {
-            console.warn('⚠️ Multiple profiles found for user:', { userId, count: userProfiles.length })
-            // Use the first one but log the issue
-          }
-
-          const userProfile = userProfiles[0]
-          console.log('✅ User profile validated:', { 
-            authUserId: userId, 
-            profileId: userProfile.id,
-            profileCount: userProfiles.length 
-          })
-
-          // Simple subscription insert
-          const { error } = await supabaseServiceRole
-            .from('subscriptions')
-            .upsert({
-              user_id: userId,
-              user_type: userType,
-              stripe_customer_id: subscription.customer,
-              stripe_subscription_id: subscription.id,
-              status: subscription.status,
-              price_id: priceId,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-              trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-              trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-              cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
-              canceled_at: null,
-            }, { onConflict: 'stripe_subscription_id' })
-
-          if (error) {
-            console.error('❌ Database error:', error)
-            return Response.json({ error: 'Database error', details: error.message }, { status: 500 })
-          }
-
-          console.log('✅ Subscription created in database')
-
-          // Create trial if needed
-          if (userType === 'patient' && subscription.trial_end) {
-            const { error: trialError } = await supabaseServiceRole
-              .from('patient_trials')
-              .upsert({
-                user_id: userId,
-                trial_start: new Date(subscription.trial_start! * 1000).toISOString(),
-                trial_end: new Date(subscription.trial_end * 1000).toISOString(),
-                trial_used: true,
-                stripe_subscription_id: subscription.id,
-              }, { onConflict: 'user_id' })
-
-            if (trialError) {
-              console.warn('⚠️ Trial creation failed:', trialError)
-              // Don't fail webhook for trial error
-            } else {
-              console.log('✅ Trial created')
-            }
-          }
-
-        } catch (dbError) {
-          console.error('💥 Database operation failed:', dbError)
-          return Response.json({ error: 'Database operation failed' }, { status: 500 })
-        }
-      } else {
-        console.error('❌ Missing required data:', { userId, priceId })
-        return Response.json({ error: 'Missing required webhook data' }, { status: 400 })
+      if (!userId || !priceId) {
+        console.error('❌ Missing required subscription metadata', { userId, priceId, metadata: sub.metadata })
+        return { ok: false, reason: 'missing_metadata' as const }
       }
-    } else {
-      console.log(`Ignoring webhook type: ${event.type}`)
+
+      const { error } = await supabaseServiceRole
+        .from('subscriptions')
+        .upsert({
+          user_id: userId,
+          user_type: userType,
+          stripe_customer_id: sub.customer,
+          stripe_subscription_id: sub.id,
+          status: normalizeStatus(sub.status),
+          price_id: priceId,
+          current_period_start: periodStartUnix ? new Date(periodStartUnix * 1000).toISOString() : null,
+          current_period_end: periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null,
+          trial_start: sub.trial_start ? new Date((sub.trial_start as number) * 1000).toISOString() : null,
+          trial_end: sub.trial_end ? new Date((sub.trial_end as number) * 1000).toISOString() : null,
+          cancel_at_period_end: Boolean(sub.cancel_at_period_end),
+          canceled_at: normalizeStatus(sub.status) === 'canceled' ? new Date().toISOString() : null,
+        }, { onConflict: 'stripe_subscription_id' })
+
+      if (error) {
+        console.error('❌ Upsert subscription failed:', error)
+        return { ok: false, reason: 'db_error' as const }
+      }
+
+      // Create/update patient trial record if applicable
+      if ((userType === 'patient') && sub.trial_end) {
+        const { error: trialError } = await supabaseServiceRole
+          .from('patient_trials')
+          .upsert({
+            user_id: userId,
+            trial_start: new Date(sub.trial_start! * 1000).toISOString(),
+            trial_end: new Date(sub.trial_end * 1000).toISOString(),
+            trial_used: true,
+            stripe_subscription_id: sub.id,
+          }, { onConflict: 'user_id' })
+
+        if (trialError) {
+          console.warn('⚠️ Upsert trial failed (non-blocking):', trialError)
+        }
+      }
+
+      console.log('✅ Subscription persisted for user', userId)
+      return { ok: true as const }
+    }
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as any
+        // Retrieve the full subscription to get metadata
+        if (session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+          await upsertSubscriptionFromStripe(subscription)
+        }
+        break
+      }
+      case 'customer.subscription.created': {
+        const subscription = event.data.object as any
+        await upsertSubscriptionFromStripe(subscription)
+        break
+      }
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as any
+        await upsertSubscriptionFromStripe(subscription)
+        break
+      }
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as any
+        await upsertSubscriptionFromStripe({ ...subscription, status: 'canceled' })
+        break
+      }
+      default: {
+        console.log(`ℹ️ Ignoring webhook type: ${event.type}`)
+      }
     }
 
     return Response.json({ received: true })

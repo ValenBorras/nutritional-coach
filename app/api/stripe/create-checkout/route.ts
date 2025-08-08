@@ -30,6 +30,23 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Invalid price ID' }, { status: 400 })
     }
 
+    // Evitar checkout si ya tiene una suscripción activa
+    const ACTIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete']
+    const { data: existingSubs } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('status', ACTIVE_STATUSES)
+      .order('updated_at', { ascending: false })
+
+    const currentSub = existingSubs?.[0]
+    if (currentSub) {
+      if (currentSub.price_id === priceId) {
+        return Response.json({ error: 'Ya tienes este plan activo' }, { status: 409 })
+      }
+      return Response.json({ error: 'Ya tienes una suscripción activa. Usa el portal para cambiar de plan.' }, { status: 409 })
+    }
+
     // Obtener o crear customer en Stripe
     let customerId: string
 

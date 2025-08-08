@@ -65,18 +65,20 @@ export function useSubscription() {
       setLoading(true);
       setError(null);
 
-      // Fetch subscription
-      const { data: subscriptionData, error: subError } = await supabase
+      // Fetch latest subscription for this user (order by updated_at desc)
+      const { data: subs, error: subError } = await supabase
         .from("subscriptions")
         .select("*")
         .eq("user_id", user!.id)
-        .maybeSingle();
+        .order("updated_at", { ascending: false })
+        .limit(1);
 
       if (subError && subError.code !== "PGRST116") {
         throw subError;
       }
 
-      setSubscription(subscriptionData);
+      const subscriptionData = Array.isArray(subs) ? subs[0] : null;
+      setSubscription(subscriptionData || null);
 
       // Fetch price info if subscription exists
       if (subscriptionData?.price_id) {
@@ -107,6 +109,36 @@ export function useSubscription() {
           setTrial(trialData);
         }
       }
+
+      // Fallback: if no subscription was found, try to sync from Stripe once
+      if (!subscriptionData) {
+        try {
+          const resp = await fetch('/api/stripe/sync-subscription', { method: 'POST' });
+          if (resp.ok) {
+            // Re-fetch after syncing
+            const { data: subs2 } = await supabase
+              .from("subscriptions")
+              .select("*")
+              .eq("user_id", user!.id)
+              .order("updated_at", { ascending: false })
+              .limit(1);
+            const subscriptionData2 = Array.isArray(subs2) ? subs2[0] : null;
+            if (subscriptionData2) {
+              setSubscription(subscriptionData2);
+              if (subscriptionData2?.price_id) {
+                const { data: priceData2 } = await supabase
+                  .from("prices")
+                  .select("*")
+                  .eq("id", subscriptionData2.price_id)
+                  .single();
+                if (priceData2) setPrice(priceData2);
+              }
+            }
+          }
+        } catch (_) {
+          // ignore fallback errors
+        }
+      }
     } catch (err) {
       console.error("Error fetching subscription data:", err);
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -135,6 +167,15 @@ export function useSubscription() {
       throw error;
     }
   };
+
+  const cancelSubscription = async () => {
+    const resp = await fetch('/api/stripe/cancel-subscription', { method: 'POST' })
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}))
+      throw new Error(data?.error || 'Error al cancelar suscripción')
+    }
+    await fetchSubscriptionData()
+  }
 
   const isTrialActive = () => {
     if (!trial) return false;
@@ -196,6 +237,7 @@ export function useSubscription() {
     subscriptionStatusText: getSubscriptionStatusText(),
     formatPrice,
     createCustomerPortalSession,
+    cancelSubscription,
     refetch: fetchSubscriptionData,
   };
 } 

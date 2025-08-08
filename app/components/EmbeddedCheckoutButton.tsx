@@ -30,6 +30,8 @@ interface EmbeddedCheckoutButtonProps {
   onSuccess?: () => void
   /** Callback when payment fails */
   onError?: (error: string) => void
+  /** Disable the trigger button */
+  disabled?: boolean
 }
 
 export default function EmbeddedCheckoutButton({
@@ -45,6 +47,7 @@ export default function EmbeddedCheckoutButton({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isDisabled = (arguments[0]?.disabled as boolean) || false
 
   // Function to fetch client secret from our API
   const fetchClientSecret = useCallback(async () => {
@@ -136,7 +139,7 @@ export default function EmbeddedCheckoutButton({
       {/* Trigger Button */}
       <button
         onClick={handleOpenCheckout}
-        disabled={isLoading}
+        disabled={isLoading || isDisabled}
         className={className || defaultButtonStyles}
       >
         {isLoading ? (

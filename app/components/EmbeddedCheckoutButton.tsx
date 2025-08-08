@@ -42,12 +42,13 @@ export default function EmbeddedCheckoutButton({
   buttonText = 'Pay Now',
   className = '',
   onSuccess,
-  onError
+  onError,
+  disabled
 }: EmbeddedCheckoutButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const isDisabled = (arguments[0]?.disabled as boolean) || false
+  const isDisabled = Boolean(disabled)
 
   // Function to fetch client secret from our API
   const fetchClientSecret = useCallback(async () => {

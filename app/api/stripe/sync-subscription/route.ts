@@ -58,9 +58,9 @@ export async function POST(req: NextRequest) {
     const priceId = sub.items?.data?.[0]?.price?.id
     const userType = (sub.metadata?.user_type as string) || 'patient'
 
-    const item = sub.items?.data?.[0]
-    const periodStartUnix: number | null = (sub.current_period_start ?? item?.current_period_start) ?? null
-    const periodEndUnix: number | null = (sub.current_period_end ?? item?.current_period_end) ?? null
+    const item = (sub as any)?.items?.data?.[0]
+    const periodStartUnix: number | null = (((sub as any).current_period_start) ?? item?.current_period_start) ?? null
+    const periodEndUnix: number | null = (((sub as any).current_period_end) ?? item?.current_period_end) ?? null
 
     const { error } = await admin
       .from('subscriptions')

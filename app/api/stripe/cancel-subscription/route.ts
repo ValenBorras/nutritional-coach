@@ -28,6 +28,11 @@ export async function POST(_req: NextRequest) {
 
     // Mirror to Supabase
     const admin = createAdminClient()
+    // Periods may be on item in newer API
+    const item: any = (canceled as any)?.items?.data?.[0]
+    const periodStartUnix: number | null = ((canceled as any).current_period_start ?? item?.current_period_start) ?? null
+    const periodEndUnix: number | null = ((canceled as any).current_period_end ?? item?.current_period_end) ?? null
+
     const { error: upsertError } = await admin.from('subscriptions').upsert({
       user_id: user.id,
       user_type: sub.user_type,
@@ -35,10 +40,10 @@ export async function POST(_req: NextRequest) {
       stripe_subscription_id: canceled.id,
       status: canceled.status,
       price_id: canceled.items?.data?.[0]?.price?.id,
-      current_period_start: new Date((canceled.current_period_start as number) * 1000).toISOString(),
-      current_period_end: new Date((canceled.current_period_end as number) * 1000).toISOString(),
-      trial_start: canceled.trial_start ? new Date((canceled.trial_start as number) * 1000).toISOString() : null,
-      trial_end: canceled.trial_end ? new Date((canceled.trial_end as number) * 1000).toISOString() : null,
+      current_period_start: periodStartUnix ? new Date(periodStartUnix * 1000).toISOString() : null,
+      current_period_end: periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null,
+      trial_start: (canceled as any).trial_start ? new Date(((canceled as any).trial_start as number) * 1000).toISOString() : null,
+      trial_end: (canceled as any).trial_end ? new Date(((canceled as any).trial_end as number) * 1000).toISOString() : null,
       cancel_at_period_end: Boolean(canceled.cancel_at_period_end),
       canceled_at: null,
     }, { onConflict: 'stripe_subscription_id' })

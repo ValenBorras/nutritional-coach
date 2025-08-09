@@ -20,6 +20,24 @@ export async function POST(
     }
 
     const { chatId } = await params;
+
+    // Patient gating: ensure access before allowing message creation
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile?.role !== 'nutritionist') {
+      const [subRes, trialRes] = await Promise.all([
+        supabase.rpc('has_active_subscription', { user_id_param: user.id }),
+        supabase.rpc('has_active_trial', { user_id_param: user.id })
+      ])
+      const allowed = Boolean(subRes.data) || Boolean(trialRes.data)
+      if (!allowed) {
+        return NextResponse.json({ error: 'Acceso restringido' }, { status: 402 })
+      }
+    }
     const { role, content, tokens_used, model_used } = await req.json();
 
     // Validate required fields
@@ -104,6 +122,24 @@ export async function GET(
     }
 
     const { chatId } = await params;
+
+    // Patient gating: ensure access before returning messages
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile?.role !== 'nutritionist') {
+      const [subRes, trialRes] = await Promise.all([
+        supabase.rpc('has_active_subscription', { user_id_param: user.id }),
+        supabase.rpc('has_active_trial', { user_id_param: user.id })
+      ])
+      const allowed = Boolean(subRes.data) || Boolean(trialRes.data)
+      if (!allowed) {
+        return NextResponse.json({ error: 'Acceso restringido' }, { status: 402 })
+      }
+    }
 
     // Verify chat exists and belongs to user
     const { data: chat, error: chatError } = await supabase

@@ -160,7 +160,10 @@ export default function BillingPage() {
     }, 5000);
   };
 
-  const isCurrentlySubscribed = subscription && (subscription.status === 'active' || subscription.status === 'trialing');
+  const periodEndValid = subscription?.current_period_end ? new Date(subscription.current_period_end) > new Date() : true;
+  const isCurrentlySubscribed = Boolean(
+    subscription && (subscription.status === 'active' || subscription.status === 'trialing') && periodEndValid
+  );
   const hasActiveAccess = isCurrentlySubscribed || isTrialActive;
   
   // Determinar qué planes mostrar según el tipo de usuario
@@ -193,7 +196,7 @@ export default function BillingPage() {
 
   const getStatusIcon = () => {
     if (isTrialActive) return <Gift className="w-5 h-5 text-blue-500" />;
-    if (!subscription) return <XCircle className="w-5 h-5 text-gray-400" />;
+    if (!subscription || !periodEndValid) return <XCircle className="w-5 h-5 text-gray-400" />;
     
     switch (subscription.status) {
       case "active":
@@ -212,7 +215,7 @@ export default function BillingPage() {
 
   const getStatusColor = () => {
     if (isTrialActive) return "bg-blue-100 text-blue-800";
-    if (!subscription) return "bg-gray-100 text-gray-800";
+    if (!subscription || !periodEndValid) return "bg-gray-100 text-gray-800";
     
     switch (subscription.status) {
       case "active":
@@ -289,7 +292,7 @@ export default function BillingPage() {
 
 
             {/* Current Plan Display */}
-            {currentPlan && (
+            {isCurrentlySubscribed && currentPlan && (
               <Card className="border-green-200 bg-green-50">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-center">

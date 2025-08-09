@@ -16,6 +16,24 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Patient gating: ensure access before returning list (active subscription OR trial)
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+    
+    if (profile?.role !== 'nutritionist') {
+      const [subRes, trialRes] = await Promise.all([
+        supabase.rpc('has_active_subscription', { user_id_param: user.id }),
+        supabase.rpc('has_active_trial', { user_id_param: user.id })
+      ])
+      const allowed = Boolean(subRes.data) || Boolean(trialRes.data)
+      if (!allowed) {
+        return NextResponse.json({ error: 'Acceso restringido' }, { status: 402 })
+      }
+    }
+
     // Get user's chats ordered by last message
     const { data: chats, error } = await supabase
       .from('chats')
@@ -77,6 +95,24 @@ export async function POST(req: NextRequest) {
         { error: "Authentication required" },
         { status: 401 }
       );
+    }
+
+    // Patient gating: ensure access before allowing creation
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+    
+    if (profile?.role !== 'nutritionist') {
+      const [subRes, trialRes] = await Promise.all([
+        supabase.rpc('has_active_subscription', { user_id_param: user.id }),
+        supabase.rpc('has_active_trial', { user_id_param: user.id })
+      ])
+      const allowed = Boolean(subRes.data) || Boolean(trialRes.data)
+      if (!allowed) {
+        return NextResponse.json({ error: 'Acceso restringido' }, { status: 402 })
+      }
     }
 
     const { title } = await req.json();

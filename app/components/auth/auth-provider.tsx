@@ -121,20 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loadingRef.current = true;
       console.log("📊 Loading user data for:", authUser.email);
 
-      // Check if email is verified (skip for OAuth users)
-      const isOAuthUser = authUser.app_metadata?.provider !== "email";
-      if (!authUser.email_confirmed_at && !isOAuthUser) {
-        console.log("❌ Email not verified for user:", authUser.email);
-        setAuthState({
-          user: null,
-          profile: null,
-          authUser,
-          loading: false,
-          error:
-            "Email not verified. Please check your email for verification link.",
-        });
-        return;
-      }
+      // Email verification disabled: proceed regardless of email_confirmed_at
 
       const response = await fetch(`/api/user?email=${authUser.email}`);
       if (!response.ok) {
@@ -194,8 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile: null,
         authUser,
         loading: false,
-        error:
-          error instanceof Error ? error.message : "Failed to load user data",
+        error: error instanceof Error ? error.message : "Failed to load user data",
       });
     } finally {
       loadingRef.current = false;

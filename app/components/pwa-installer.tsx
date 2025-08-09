@@ -166,6 +166,7 @@ export default function PWAInstaller() {
     useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const DISMISS_KEY = 'pwa-install-dismissed';
 
   useEffect(() => {
     // Register service worker IMMEDIATELY and with robust error handling
@@ -225,9 +226,17 @@ export default function PWAInstaller() {
       setIsInstalled(true);
     }
 
+    // Respect prior dismissal: if user closed/"Ahora no", don't show again
+    const previouslyDismissed =
+      typeof window !== 'undefined' && localStorage.getItem(DISMISS_KEY) === 'true';
+
     // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      if (previouslyDismissed || isInstalled) {
+        // Do not show again if user dismissed before or app is installed
+        return;
+      }
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallPrompt(true);
     };
@@ -244,7 +253,9 @@ export default function PWAInstaller() {
       console.log("✅ PWA installed successfully");
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    if (!previouslyDismissed && !isInstalled) {
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    }
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
@@ -269,6 +280,8 @@ export default function PWAInstaller() {
       localStorage.setItem("app-installed", new Date().toISOString());
     } else {
       console.log("User dismissed the install prompt");
+      // Do not show again
+      localStorage.setItem(DISMISS_KEY, 'true');
     }
 
     setDeferredPrompt(null);
@@ -277,6 +290,10 @@ export default function PWAInstaller() {
 
   const handleDismiss = () => {
     setShowInstallPrompt(false);
+    // Do not show again on subsequent visits
+    try {
+      localStorage.setItem(DISMISS_KEY, 'true');
+    } catch {}
   };
 
   if (isInstalled || !showInstallPrompt) {

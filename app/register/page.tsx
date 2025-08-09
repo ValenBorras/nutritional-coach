@@ -65,14 +65,10 @@ export default function RegisterPage() {
             duration: 10000,
           },
         );
-      } else {
-        toast.success(
-          "Registro exitoso - Revisa tu email para verificar tu cuenta",
-        );
       }
 
-      // After successful registration, redirect to check email page
-      router.push(`/check-email?email=${encodeURIComponent(data.email)}`);
+      // After successful registration, go to dashboard (email verification disabled)
+      router.push('/dashboard');
     } catch (error) {
       console.error("Error durante el registro:", error);
       const message =

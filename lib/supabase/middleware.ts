@@ -56,22 +56,8 @@ export async function updateSession(request: NextRequest) {
       console.log('🔍 OAuth user accessing protected route, allowing access:', user.email);
     }
 
-    // User is authenticated, check email verification for protected routes
-    if (isProtectedRoute && !user.email_confirmed_at) {
-      // Skip email verification check for OAuth users on allowed routes
-      const isOAuthUser = user.app_metadata?.provider !== 'email';
-      if (!(isOAuthUser && isAllowedRoute)) {
-        // Redirect unverified users to check-email page
-        const redirectUrl = new URL('/check-email', request.url)
-        if (user.email) {
-          redirectUrl.searchParams.set('email', user.email)
-        }
-        return NextResponse.redirect(redirectUrl)
-      }
-    }
-
-    // If verified user tries to access auth routes (but not onboarding), redirect to dashboard
-    if (isAuthRoute && user.email_confirmed_at && currentPath !== '/verify-email' && !isAllowedRoute) {
+    // If authenticated user tries to access auth routes (but not onboarding), redirect to dashboard
+    if (isAuthRoute && !isAllowedRoute) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   } else {

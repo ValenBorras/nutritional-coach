@@ -47,6 +47,8 @@ export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [price, setPrice] = useState<Price | null>(null);
   const [trial, setTrial] = useState<PatientTrial | null>(null);
+  const [trialActive, setTrialActive] = useState<boolean>(false);
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
@@ -95,19 +97,28 @@ export function useSubscription() {
         }
       }
 
-      // Fetch trial info for patients
+      // Fetch trial info for patients (use server-side datetime via RPC for status)
       if (user?.role === "patient") {
-        const { data: trialData, error: trialError } = await supabase
-          .from("patient_trials")
-          .select("*")
-          .eq("user_id", user!.id)
-          .maybeSingle();
+        const [trialRow, hasTrialRes, daysRes] = await Promise.all([
+          supabase
+            .from("patient_trials")
+            .select("*")
+            .eq("user_id", user!.id)
+            .maybeSingle(),
+          supabase.rpc('has_active_trial', { user_id_param: user!.id }),
+          supabase.rpc('trial_days_remaining', { user_id_param: user!.id })
+        ])
 
-        if (trialError && trialError.code !== "PGRST116") {
-          console.error("Error fetching trial:", trialError);
+        const trialData = (trialRow as any)?.data || null
+        const trialRowError = (trialRow as any)?.error
+        if (trialRowError && trialRowError.code !== "PGRST116") {
+          console.error("Error fetching trial:", trialRowError)
         } else {
-          setTrial(trialData);
+          setTrial(trialData)
         }
+
+        if (!hasTrialRes.error) setTrialActive(Boolean(hasTrialRes.data))
+        if (!daysRes.error) setTrialDaysLeft(daysRes.data || 0)
       }
 
       // Fallback: if no subscription was found, try to sync from Stripe once
@@ -177,19 +188,7 @@ export function useSubscription() {
     await fetchSubscriptionData()
   }
 
-  const isTrialActive = () => {
-    if (!trial) return false;
-    return new Date(trial.trial_end) > new Date();
-  };
-
-  const getTrialDaysRemaining = () => {
-    if (!trial || !isTrialActive()) return 0;
-    const now = new Date();
-    const trialEnd = new Date(trial.trial_end);
-    const diffTime = Math.abs(trialEnd.getTime() - now.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+  // isTrialActive and trialDaysRemaining derived from server-side RPC
 
   const formatPrice = (amount: number, currency: string = "usd") => {
     return new Intl.NumberFormat("es-AR", {
@@ -200,7 +199,7 @@ export function useSubscription() {
 
   const getSubscriptionStatusText = () => {
     if (!subscription) {
-      if (user?.role === "patient" && isTrialActive()) {
+      if (user?.role === "patient" && trialActive) {
         return "Período de prueba activo";
       }
       return "Sin suscripción";
@@ -232,8 +231,8 @@ export function useSubscription() {
     trial,
     loading,
     error,
-    isTrialActive: isTrialActive(),
-    trialDaysRemaining: getTrialDaysRemaining(),
+    isTrialActive: trialActive,
+    trialDaysRemaining: trialDaysLeft,
     subscriptionStatusText: getSubscriptionStatusText(),
     formatPrice,
     createCustomerPortalSession,

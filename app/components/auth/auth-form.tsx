@@ -81,9 +81,14 @@ export function AuthForm({ mode }: AuthFormProps) {
           throw new Error(data.message || "Error al registrar usuario");
         }
 
-        // After successful registration, redirect to check email page
-        router.push(`/check-email?email=${encodeURIComponent(email)}`);
-        return; // Don't continue with sign in
+        // After successful registration, sign in and go to dashboard
+        const { error: signInError } = await signInWithEmail(email, password);
+        if (signInError) {
+          throw new Error(signInError.message);
+        }
+        router.push('/dashboard');
+        router.refresh();
+        return;
       } else {
         const { error: signInError } = await signInWithEmail(email, password);
 

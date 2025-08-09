@@ -25,6 +25,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Server-side gating for patients: must have active subscription OR active trial
+    // Uses SQL functions that rely on server time (now())
+    const { data: roleRow } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (roleRow?.role !== 'nutritionist') {
+      const [subscriptionResult, trialResult] = await Promise.all([
+        supabase.rpc('has_active_subscription', { user_id_param: user.id }),
+        supabase.rpc('has_active_trial', { user_id_param: user.id }),
+      ]);
+
+      const hasActiveSubscription = Boolean(subscriptionResult.data);
+      const hasActiveTrial = Boolean(trialResult.data);
+
+      if (!hasActiveSubscription && !hasActiveTrial) {
+        return NextResponse.json(
+          { error: 'Acceso restringido: se requiere suscripción activa o trial vigente.' },
+          { status: 402 }
+        );
+      }
+    }
+
     // If chatId is provided, verify it belongs to the user
     const currentChatId = chatId;
     if (chatId) {

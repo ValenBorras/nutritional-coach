@@ -122,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("📊 Loading user data for:", authUser.email);
 
       // Email verification disabled: proceed regardless of email_confirmed_at
+      const isOAuthUser = authUser.app_metadata?.provider !== "email";
 
       const response = await fetch(`/api/user?email=${authUser.email}`);
       if (!response.ok) {

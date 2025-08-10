@@ -6,32 +6,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/app/components/ui/avatar";
 import { UserAvatar } from "@/app/components/ui/user-avatar";
-import {
-  Home,
-  Calendar,
-  PieChart,
-  Settings,
-  MessageSquare,
-  Menu,
-  X,
-  User,
-  LogOut,
-  Bell,
-  Users,
-  CreditCard,
-} from "lucide-react";
+import { Home, Calendar, PieChart, Settings, Menu, X, LogOut, Users, CreditCard } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useAuth } from "@/hooks/use-auth";
 import { usePWADetection } from "@/hooks/use-pwa-detection";

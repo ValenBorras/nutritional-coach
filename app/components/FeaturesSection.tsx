@@ -1,19 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/app/components/ui/card";
-import {
-  Brain,
-  Clock,
-  Heart,
-  Lightbulb,
-  Smartphone,
-  TrendingUp,
-} from "lucide-react";
-import { MessageSquare, Sparkles, Zap, UserCheck } from "lucide-react";
+import { Heart, Clock, MessageSquare, Sparkles, Zap, UserCheck } from "lucide-react";
 
 export default function FeaturesSection() {
   const features = [

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Label } from "./label";
 import { ChevronDown } from "lucide-react";
 
 interface DateSliderProps {

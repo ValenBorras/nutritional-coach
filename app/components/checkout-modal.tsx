@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { EmbeddedCheckout } from '@/app/components/embedded-checkout';
 import { Button } from '@/app/components/ui/button';

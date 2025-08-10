@@ -1,5 +1,4 @@
 import { Button } from "@/app/components/ui/button";
-import { Card, CardContent } from "@/app/components/ui/card";
 import { Settings, Users, TrendingUp } from "lucide-react";
 import Link from "next/link";
 

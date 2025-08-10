@@ -8,7 +8,6 @@ import { Button } from '@/app/components/ui/button'
 import { 
   Shield, 
   CheckCircle, 
-  Clock, 
   AlertTriangle, 
   XCircle,
   Crown,
